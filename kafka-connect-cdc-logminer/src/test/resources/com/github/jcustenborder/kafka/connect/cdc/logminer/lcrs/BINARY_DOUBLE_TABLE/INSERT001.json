@@ -1,0 +1,50 @@
+{
+  "hasChunkData" : false,
+  "sourceDatabaseName" : "ORCLPDB1",
+  "commandType" : "INSERT",
+  "objectOwner" : "DATATYPE_TESTING",
+  "objectName" : "BINARY_DOUBLE_TABLE",
+  "tag" : "",
+  "position" : "AAAAHQCOAAAAAQAAAAEAAAAdAIwAAAALAAAAAQE=",
+  "transactionID" : "10.12.1272",
+  "sourceTime" : "eHUBAwM0EQ==",
+  "attributes" : {
+    "ROOT_NAME" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "T1JDTA=="
+    },
+    "ROW_ID" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "QUFBV2JTQUFMQUFBQUVPQUFB"
+    }
+  },
+  "oldValues" : [ ],
+  "newValues" : [ {
+    "columnName" : "ID",
+    "columnDataType" : 2,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 2,
+      "value" : "wQI="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "VALUE",
+    "columnDataType" : 101,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 101,
+      "value" : "wAkeuFHrhR8="
+    },
+    "32kData" : false
+  } ],
+  "chunkColumnValues" : [ ]
+}

@@ -1,0 +1,36 @@
+{
+  "databaseName": "ORCLPDB1",
+  "schemaName": "DATATYPE_TESTING",
+  "tableName": "UNIQUE_TABLE",
+  "expected": {
+    "databaseName": "ORCLPDB1",
+    "schemaName": "DATATYPE_TESTING",
+    "tableName": "UNIQUE_TABLE",
+    "keyColumns": [
+      "EMAIL_ADDRESS"
+    ],
+    "columnSchemas": {
+      "FIRST_NAME": {
+        "type": "STRING",
+        "parameters": {
+          "io.confluent.kafka.connect.cdc.change.column.name": "FIRST_NAME"
+        },
+        "isOptional": true
+      },
+      "LAST_NAME": {
+        "type": "STRING",
+        "parameters": {
+          "io.confluent.kafka.connect.cdc.change.column.name": "LAST_NAME"
+        },
+        "isOptional": true
+      },
+      "EMAIL_ADDRESS": {
+        "type": "STRING",
+        "parameters": {
+          "io.confluent.kafka.connect.cdc.change.column.name": "EMAIL_ADDRESS"
+        },
+        "isOptional": false
+      }
+    }
+  }
+}

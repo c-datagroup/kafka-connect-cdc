@@ -1,0 +1,11 @@
+version: "2"
+services:
+  oracle:
+    image: docker.confluent.io:5000/oracle11g
+    ports:
+      - '1521'
+    volumes:
+      - './db/init:/db/init'
+    environment:
+      ORACLE_HOME: /opt/oracle/app/product/11.2.0/dbhome_1
+      ORACLE_SID: orcl

@@ -1,0 +1,50 @@
+{
+  "hasChunkData" : false,
+  "sourceDatabaseName" : "ORCLPDB1",
+  "commandType" : "INSERT",
+  "objectOwner" : "DATATYPE_TESTING",
+  "objectName" : "CHAR_TABLE",
+  "tag" : "",
+  "position" : "AAAAHQBeAAAAAQAAAAEAAAAc/+0AAAAVAAAAAQE=",
+  "transactionID" : "8.14.1680",
+  "sourceTime" : "eHUBAwM0EQ==",
+  "attributes" : {
+    "ROOT_NAME" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "T1JDTA=="
+    },
+    "ROW_ID" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "QUFBV2JFQUFMQUFBQUNlQUFB"
+    }
+  },
+  "oldValues" : [ ],
+  "newValues" : [ {
+    "columnName" : "ID",
+    "columnDataType" : 2,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 2,
+      "value" : "wQI="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "VALUE",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "dGhpcyBpcyBhIGNoYXIgdmFsdWUgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA="
+    },
+    "32kData" : false
+  } ],
+  "chunkColumnValues" : [ ]
+}

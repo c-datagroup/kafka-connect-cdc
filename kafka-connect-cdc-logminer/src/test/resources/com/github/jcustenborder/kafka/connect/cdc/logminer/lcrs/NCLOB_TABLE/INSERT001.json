@@ -1,0 +1,58 @@
+{
+  "hasChunkData" : true,
+  "sourceDatabaseName" : "ORCLPDB1",
+  "commandType" : "INSERT",
+  "objectOwner" : "DATATYPE_TESTING",
+  "objectName" : "NCLOB_TABLE",
+  "tag" : "",
+  "position" : "AAAAHQEvAAAAAQAAAAEAAAAdAS0AAAACAAAAAQE=",
+  "transactionID" : "3.19.1535",
+  "sourceTime" : "eHUBAwM0EQ==",
+  "attributes" : {
+    "ROOT_NAME" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "T1JDTA=="
+    }
+  },
+  "oldValues" : [ ],
+  "newValues" : [ {
+    "columnName" : "ID",
+    "columnDataType" : 2,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 2,
+      "value" : "wQI="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "VALUE",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : null,
+    "32kData" : false
+  } ],
+  "chunkColumnValues" : [ {
+    "columnName" : "VALUE",
+    "columnDataType" : null,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : null,
+    "chunkOffset" : null,
+    "chunkOperationSize" : null,
+    "charSetId" : null,
+    "chunkType" : 3,
+    "lastChunk" : true,
+    "emptyChunk" : false,
+    "xmlDiff" : false,
+    "endOfRow" : true,
+    "xmldiff" : false,
+    "32kData" : false
+  } ]
+}

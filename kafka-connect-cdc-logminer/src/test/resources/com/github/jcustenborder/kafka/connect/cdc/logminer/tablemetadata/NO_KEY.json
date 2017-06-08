@@ -1,0 +1,48 @@
+{
+  "databaseName" : "ORCLPDB1",
+  "schemaName" : "DATATYPE_TESTING",
+  "tableName" : "NO_KEY",
+  "expected" : {
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "NO_KEY",
+    "keyColumns" : [ "__ROWID" ],
+    "columnSchemas" : {
+      "FIRST_NAME" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "FIRST_NAME"
+        },
+        "isOptional" : true
+      },
+      "LAST_NAME" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "LAST_NAME"
+        },
+        "isOptional" : true
+      },
+      "EMAIL" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "EMAIL"
+        },
+        "isOptional" : true
+      },
+      "IP_ADDRESS" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "IP_ADDRESS"
+        },
+        "isOptional" : true
+      },
+      "__ROWID" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ROW_ID"
+        },
+        "isOptional" : true
+      }
+    }
+  }
+}

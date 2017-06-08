@@ -1,0 +1,30 @@
+{
+  "databaseName" : "ORCLPDB1",
+  "schemaName" : "DATATYPE_TESTING",
+  "tableName" : "NCHAR_TABLE",
+  "expected" : {
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "NCHAR_TABLE",
+    "keyColumns" : [ "ID" ],
+    "columnSchemas" : {
+      "ID" : {
+        "name" : "org.apache.kafka.connect.data.Decimal",
+        "type" : "BYTES",
+        "version" : 1,
+        "parameters" : {
+          "scale" : "0",
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ID"
+        },
+        "isOptional" : false
+      },
+      "VALUE" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "VALUE"
+        },
+        "isOptional" : true
+      }
+    }
+  }
+}

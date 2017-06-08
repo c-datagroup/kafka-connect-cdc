@@ -1,0 +1,142 @@
+{
+  "hasChunkData" : false,
+  "sourceDatabaseName" : "ORCLPDB1",
+  "commandType" : "INSERT",
+  "objectOwner" : "DATATYPE_TESTING",
+  "objectName" : "schema_version",
+  "tag" : "",
+  "position" : "AAAAHQFqAAAAAQAAAAEAAAAdAWkAAAABAAAAAQE=",
+  "transactionID" : "5.7.1583",
+  "sourceTime" : "eHUBAwM0EQ==",
+  "attributes" : {
+    "ROOT_NAME" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "T1JDTA=="
+    },
+    "ROW_ID" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "QUFBV2JCQUFMQUFBQUNGQUFP"
+    }
+  },
+  "oldValues" : [ ],
+  "newValues" : [ {
+    "columnName" : "installed_rank",
+    "columnDataType" : 2,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 2,
+      "value" : "wRA="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "version",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "MC4wLjEuMjAw"
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "description",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "WFN0cmVhbSBSZWFkeQ=="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "type",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "SkRCQw=="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "script",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "ZGIubWlncmF0aW9uLm9yYWNsZTEyYy5WMF8wXzFfMjAwX19YU3RyZWFtX1JlYWR5"
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "checksum",
+    "columnDataType" : 2,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : null,
+    "32kData" : false
+  }, {
+    "columnName" : "installed_by",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "U1lTVEVN"
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "installed_on",
+    "columnDataType" : 180,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 180,
+      "value" : "eHUBAhU0ESbWeXA="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "execution_time",
+    "columnDataType" : 2,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 2,
+      "value" : "wRQ="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "success",
+    "columnDataType" : 2,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 2,
+      "value" : "wQI="
+    },
+    "32kData" : false
+  } ],
+  "chunkColumnValues" : [ ]
+}

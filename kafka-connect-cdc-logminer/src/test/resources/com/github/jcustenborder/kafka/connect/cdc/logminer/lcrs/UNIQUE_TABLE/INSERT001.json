@@ -1,0 +1,62 @@
+{
+  "hasChunkData" : false,
+  "sourceDatabaseName" : "ORCLPDB1",
+  "commandType" : "INSERT",
+  "objectOwner" : "DATATYPE_TESTING",
+  "objectName" : "UNIQUE_TABLE",
+  "tag" : "",
+  "position" : "AAAAHQFEAAAAAQAAAAEAAAAdAUEAAAALAAAAAQE=",
+  "transactionID" : "8.25.1680",
+  "sourceTime" : "eHUBAwM0EQ==",
+  "attributes" : {
+    "ROOT_NAME" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "T1JDTA=="
+    },
+    "ROW_ID" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "QUFBV2JvQUFMQUFBQUhXQUFB"
+    }
+  },
+  "oldValues" : [ ],
+  "newValues" : [ {
+    "columnName" : "FIRST_NAME",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "dXNlckBleGFtcGxlLmNvbQ=="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "LAST_NAME",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "dXNlckBleGFtcGxlLmNvbQ=="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "EMAIL_ADDRESS",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "dXNlckBleGFtcGxlLmNvbQ=="
+    },
+    "32kData" : false
+  } ],
+  "chunkColumnValues" : [ ]
+}

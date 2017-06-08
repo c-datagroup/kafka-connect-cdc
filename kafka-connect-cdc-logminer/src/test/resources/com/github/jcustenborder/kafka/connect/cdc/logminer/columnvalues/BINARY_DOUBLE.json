@@ -1,0 +1,25 @@
+{
+  "input": {
+    "columnName": "VALUE",
+    "columnDataType": 101,
+    "tdefFlag": false,
+    "is32kData": false,
+    "charsetId": 0,
+    "columnData": {
+      "datumType": 101,
+      "value": 3.140000000000000124344978758017532527446746826171875
+    },
+    "32kData": false
+  },
+  "expected": {
+    "columnName" : "VALUE",
+    "value" : 3.140000000000000124344978758017532527446746826171875,
+    "schema" : {
+      "type" : "FLOAT64",
+      "parameters" : {
+        "io.confluent.kafka.connect.cdc.change.column.name" : "VALUE"
+      },
+      "isOptional" : true
+    }
+  }
+}

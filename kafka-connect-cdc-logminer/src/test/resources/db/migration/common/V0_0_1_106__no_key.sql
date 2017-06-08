@@ -1,0 +1,10 @@
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Justin', 'Simmons', 'jsimmons0@vimeo.com', '7.101.20.158');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Kenneth', 'Wallace', 'kwallace1@histats.com', '2.152.10.197');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Susan', 'Scott', 'sscott2@freewebs.com', '181.170.114.71');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Barbara', 'Bennett', 'bbennett3@timesonline.co.uk', '187.125.28.106');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('John', 'Gomez', 'jgomez4@amazonaws.com', '141.184.11.84');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Thomas', 'Black', 'tblack5@nytimes.com', '50.26.80.200');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Norma', 'Ward', 'nward6@vistaprint.com', '238.172.169.19');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Diane', 'Gibson', 'dgibson7@state.gov', '230.127.145.67');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Ashley', 'Bell', 'abell8@yellowbook.com', '34.108.67.54');
+INSERT INTO datatype_testing.NO_KEY (first_name, last_name, email, ip_address) VALUES ('Evelyn', 'Smith', 'esmith9@cisco.com', '225.93.20.252');

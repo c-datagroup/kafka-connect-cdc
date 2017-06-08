@@ -1,0 +1,150 @@
+{
+  "inputRowLCR" : {
+    "hasChunkData" : false,
+    "sourceDatabaseName" : "ORCLPDB1",
+    "commandType" : "INSERT",
+    "objectOwner" : "DATATYPE_TESTING",
+    "objectName" : "UNIQUE_TABLE",
+    "tag" : "",
+    "position" : "AAAAHQFEAAAAAQAAAAEAAAAdAUEAAAALAAAAAQE=",
+    "transactionID" : "8.25.1680",
+    "sourceTime" : "eHUBAwM0EQ==",
+    "attributes" : {
+      "ROOT_NAME" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "T1JDTA=="
+      },
+      "ROW_ID" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "QUFBV2JvQUFMQUFBQUhXQUFB"
+      }
+    },
+    "oldValues" : [ ],
+    "newValues" : [ {
+      "columnName" : "FIRST_NAME",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "dXNlckBleGFtcGxlLmNvbQ=="
+      },
+      "32kData" : false
+    }, {
+      "columnName" : "LAST_NAME",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "dXNlckBleGFtcGxlLmNvbQ=="
+      },
+      "32kData" : false
+    }, {
+      "columnName" : "EMAIL_ADDRESS",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "dXNlckBleGFtcGxlLmNvbQ=="
+      },
+      "32kData" : false
+    } ],
+    "chunkColumnValues" : [ ]
+  },
+  "inputTableMetadata" : {
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "UNIQUE_TABLE",
+    "keyColumns" : [ "EMAIL_ADDRESS" ],
+    "columnSchemas" : {
+      "FIRST_NAME" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "FIRST_NAME"
+        },
+        "isOptional" : true
+      },
+      "LAST_NAME" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "LAST_NAME"
+        },
+        "isOptional" : true
+      },
+      "EMAIL_ADDRESS" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "EMAIL_ADDRESS"
+        },
+        "isOptional" : false
+      }
+    }
+  },
+  "expected" : {
+    "metadata" : {
+      "command" : "INSERT",
+      "transactionID" : "8.25.1680"
+    },
+    "sourcePartition" : { },
+    "sourceOffset" : {
+      "position" : "000007818G000001000000800001Q0A1000002O00000208="
+    },
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "UNIQUE_TABLE",
+    "changeType" : "INSERT",
+    "timestamp" : 1483433476000,
+    "keyColumns" : [ {
+      "columnName" : "EMAIL_ADDRESS",
+      "value" : "user@example.com",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "EMAIL_ADDRESS"
+        },
+        "isOptional" : false
+      }
+    } ],
+    "valueColumns" : [ {
+      "columnName" : "FIRST_NAME",
+      "value" : "user@example.com",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "FIRST_NAME"
+        },
+        "isOptional" : true
+      }
+    }, {
+      "columnName" : "LAST_NAME",
+      "value" : "user@example.com",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "LAST_NAME"
+        },
+        "isOptional" : true
+      }
+    }, {
+      "columnName" : "EMAIL_ADDRESS",
+      "value" : "user@example.com",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "EMAIL_ADDRESS"
+        },
+        "isOptional" : false
+      }
+    } ]
+  }
+}

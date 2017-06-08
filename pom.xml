@@ -41,6 +41,7 @@
         <module>kafka-connect-cdc-mysql</module>
         <module>kafka-connect-cdc-postgres</module>
         <module>kafka-connect-cdc-xstream</module>
+		<module>kafka-connect-cdc-logminer</module>
     </modules>
 
     <dependencies>
@@ -56,6 +57,16 @@
         <repository>
             <id>palantir</id>
             <url>https://dl.bintray.com/palantir/releases/</url>
+        </repository>
+        <repository>
+            <id>atlassian</id>
+            <name>Atlassian 3rd-Party</name>
+            <url>https://maven.atlassian.com/3rdparty/</url>
+        </repository>
+        <repository>
+            <id>releases</id>
+            <name>Nexus</name>
+            <url>http://maven.csdn.net:8081/nexus/content/repositories/releases/</url>
         </repository>
     </repositories>
 </project>

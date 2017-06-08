@@ -1,0 +1,4 @@
+-- CREATE TABLESPACE datatype_tbs DATAFILE 'datatype_tbs.dat' SIZE 10M AUTOEXTEND ON;
+-- CREATE TEMPORARY TABLESPACE datatype_tbs_temp TEMPFILE 'datatype_tbs_temp.dat' SIZE 10M AUTOEXTEND ON;
+-- CREATE USER datatype_testing IDENTIFIED BY 1234 DEFAULT TABLESPACE datatype_tbs TEMPORARY TABLESPACE datatype_tbs_temp;
+-- ALTER USER datatype_testing quota unlimited on datatype_tbs;

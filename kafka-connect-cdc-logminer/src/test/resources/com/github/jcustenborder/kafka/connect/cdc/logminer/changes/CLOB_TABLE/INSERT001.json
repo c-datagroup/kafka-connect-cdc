@@ -1,0 +1,138 @@
+{
+  "inputRowLCR" : {
+    "hasChunkData" : true,
+    "sourceDatabaseName" : "ORCLPDB1",
+    "commandType" : "INSERT",
+    "objectOwner" : "DATATYPE_TESTING",
+    "objectName" : "CLOB_TABLE",
+    "tag" : "",
+    "position" : "AAAAHQEvAAAAAQAAAAEAAAAdARMAAAACAAAAAQE=",
+    "transactionID" : "3.19.1535",
+    "sourceTime" : "eHUBAwM0EQ==",
+    "attributes" : {
+      "ROOT_NAME" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "T1JDTA=="
+      }
+    },
+    "oldValues" : [ ],
+    "newValues" : [ {
+      "columnName" : "ID",
+      "columnDataType" : 2,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 0,
+        "datumType" : 2,
+        "value" : "wQI="
+      },
+      "32kData" : false
+    }, {
+      "columnName" : "VALUE",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : null,
+      "32kData" : false
+    } ],
+    "chunkColumnValues" : [ {
+      "columnName" : "VALUE",
+      "columnDataType" : null,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : null,
+      "chunkOffset" : null,
+      "chunkOperationSize" : null,
+      "charSetId" : null,
+      "chunkType" : 1,
+      "lastChunk" : true,
+      "emptyChunk" : false,
+      "xmlDiff" : false,
+      "endOfRow" : true,
+      "xmldiff" : false,
+      "32kData" : false
+    } ]
+  },
+  "inputTableMetadata" : {
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "CLOB_TABLE",
+    "keyColumns" : [ "ID" ],
+    "columnSchemas" : {
+      "ID" : {
+        "name" : "org.apache.kafka.connect.data.Decimal",
+        "type" : "BYTES",
+        "version" : 1,
+        "parameters" : {
+          "scale" : "0",
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ID"
+        },
+        "isOptional" : false
+      },
+      "VALUE" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "VALUE"
+        },
+        "isOptional" : true
+      }
+    }
+  },
+  "expected" : {
+    "metadata" : {
+      "command" : "INSERT",
+      "transactionID" : "3.19.1535"
+    },
+    "sourcePartition" : { },
+    "sourceOffset" : {
+      "position" : "000007815S000001000000800001Q08J000000G00000208="
+    },
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "CLOB_TABLE",
+    "changeType" : "INSERT",
+    "timestamp" : 1483433476000,
+    "keyColumns" : [ {
+      "columnName" : "ID",
+      "value" : 1,
+      "schema" : {
+        "name" : "org.apache.kafka.connect.data.Decimal",
+        "type" : "BYTES",
+        "version" : 1,
+        "parameters" : {
+          "scale" : "0",
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ID"
+        },
+        "isOptional" : false
+      }
+    } ],
+    "valueColumns" : [ {
+      "columnName" : "ID",
+      "value" : 1,
+      "schema" : {
+        "name" : "org.apache.kafka.connect.data.Decimal",
+        "type" : "BYTES",
+        "version" : 1,
+        "parameters" : {
+          "scale" : "0",
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ID"
+        },
+        "isOptional" : false
+      }
+    }, {
+      "columnName" : "VALUE",
+      "value" : null,
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "VALUE"
+        },
+        "isOptional" : true
+      }
+    } ]
+  }
+}

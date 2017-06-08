@@ -1,0 +1,1 @@
+INSERT INTO DATATYPE_TESTING.UNIQUE_TABLE (FIRST_NAME, LAST_NAME, EMAIL_ADDRESS) VALUES ('user@example.com', 'user@example.com', 'user@example.com');

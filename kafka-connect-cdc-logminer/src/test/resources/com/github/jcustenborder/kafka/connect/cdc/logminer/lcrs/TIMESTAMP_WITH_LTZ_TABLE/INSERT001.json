@@ -1,0 +1,50 @@
+{
+  "hasChunkData" : false,
+  "sourceDatabaseName" : "ORCLPDB1",
+  "commandType" : "INSERT",
+  "objectOwner" : "DATATYPE_TESTING",
+  "objectName" : "TIMESTAMP_WITH_LTZ_TABLE",
+  "tag" : "",
+  "position" : "AAAAHQDWAAAAAQAAAAEAAAAdAMAAAAALAAAAAQE=",
+  "transactionID" : "4.31.1299",
+  "sourceTime" : "eHUBAwM0EQ==",
+  "attributes" : {
+    "ROOT_NAME" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "T1JDTA=="
+    },
+    "ROW_ID" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "QUFBV2JhQUFMQUFBQUUrQUFB"
+    }
+  },
+  "oldValues" : [ ],
+  "newValues" : [ {
+    "columnName" : "ID",
+    "columnDataType" : 2,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 2,
+      "value" : "wQI="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "VALUE",
+    "columnDataType" : 231,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 0,
+      "datumType" : 231,
+      "value" : "eHQMGRcDKzW0K0A="
+    },
+    "32kData" : false
+  } ],
+  "chunkColumnValues" : [ ]
+}

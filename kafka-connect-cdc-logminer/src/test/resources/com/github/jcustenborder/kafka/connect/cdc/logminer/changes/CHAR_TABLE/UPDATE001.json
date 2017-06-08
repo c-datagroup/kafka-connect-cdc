@@ -1,0 +1,116 @@
+{
+  "inputRowLCR" : {
+    "hasChunkData" : false,
+    "sourceDatabaseName" : "ORCLPDB1",
+    "commandType" : "UPDATE",
+    "objectOwner" : "DATATYPE_TESTING",
+    "objectName" : "CHAR_TABLE",
+    "tag" : "",
+    "position" : "AAAAHQBeAAAAAQAAAAEAAAAdAF0AAAALAAAAAQE=",
+    "transactionID" : "8.14.1680",
+    "sourceTime" : "eHUBAwM0EQ==",
+    "attributes" : {
+      "ROOT_NAME" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "T1JDTA=="
+      },
+      "ROW_ID" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "QUFBV2JFQUFMQUFBQUNlQUFC"
+      }
+    },
+    "oldValues" : [ {
+      "columnName" : "ID",
+      "columnDataType" : 2,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 0,
+        "datumType" : 2,
+        "value" : "wQM="
+      },
+      "32kData" : false
+    }, {
+      "columnName" : "VALUE",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "dGhpcyBpcyBhbm90aGVyIHZhbHVlICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA="
+      },
+      "32kData" : false
+    } ],
+    "newValues" : [ {
+      "columnName" : "VALUE",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "dGhpcyBpcyBhbm90aGVyIHZhbHVlICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA="
+      },
+      "32kData" : false
+    } ],
+    "chunkColumnValues" : [ ]
+  },
+  "inputTableMetadata" : {
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "CHAR_TABLE",
+    "keyColumns" : [ "ID" ],
+    "columnSchemas" : {
+      "ID" : {
+        "name" : "org.apache.kafka.connect.data.Decimal",
+        "type" : "BYTES",
+        "version" : 1,
+        "parameters" : {
+          "scale" : "0",
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ID"
+        },
+        "isOptional" : false
+      },
+      "VALUE" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "VALUE"
+        },
+        "isOptional" : true
+      }
+    }
+  },
+  "expected" : {
+    "metadata" : {
+      "command" : "UPDATE",
+      "transactionID" : "8.14.1680"
+    },
+    "sourcePartition" : { },
+    "sourceOffset" : {
+      "position" : "00000780BO000001000000800001Q02T000002O00000208="
+    },
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "CHAR_TABLE",
+    "changeType" : "UPDATE",
+    "timestamp" : 1483433476000,
+    "keyColumns" : [ ],
+    "valueColumns" : [ {
+      "columnName" : "VALUE",
+      "value" : "this is another value                                                                                                           ",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "VALUE"
+        },
+        "isOptional" : true
+      }
+    } ]
+  }
+}

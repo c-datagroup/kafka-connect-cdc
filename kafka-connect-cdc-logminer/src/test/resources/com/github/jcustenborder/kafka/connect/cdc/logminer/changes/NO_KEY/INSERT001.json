@@ -1,0 +1,196 @@
+{
+  "inputRowLCR" : {
+    "hasChunkData" : false,
+    "sourceDatabaseName" : "ORCLPDB1",
+    "commandType" : "INSERT",
+    "objectOwner" : "DATATYPE_TESTING",
+    "objectName" : "NO_KEY",
+    "tag" : "",
+    "position" : "AAAAHQFdAAAAAQAAAAEAAAAdAVcAAAALAAAAAQE=",
+    "transactionID" : "5.1.1583",
+    "sourceTime" : "eHUBAwM0EQ==",
+    "attributes" : {
+      "ROOT_NAME" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "T1JDTA=="
+      },
+      "ROW_ID" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "QUFBV2JxQUFMQUFBQUhtQUFB"
+      }
+    },
+    "oldValues" : [ ],
+    "newValues" : [ {
+      "columnName" : "FIRST_NAME",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "SnVzdGlu"
+      },
+      "32kData" : false
+    }, {
+      "columnName" : "LAST_NAME",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "U2ltbW9ucw=="
+      },
+      "32kData" : false
+    }, {
+      "columnName" : "EMAIL",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "anNpbW1vbnMwQHZpbWVvLmNvbQ=="
+      },
+      "32kData" : false
+    }, {
+      "columnName" : "IP_ADDRESS",
+      "columnDataType" : 1,
+      "tdefFlag" : false,
+      "is32kData" : false,
+      "charsetId" : 0,
+      "columnData" : {
+        "charset" : 871,
+        "datumType" : 1,
+        "value" : "Ny4xMDEuMjAuMTU4"
+      },
+      "32kData" : false
+    } ],
+    "chunkColumnValues" : [ ]
+  },
+  "inputTableMetadata" : {
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "NO_KEY",
+    "keyColumns" : [ "__ROWID" ],
+    "columnSchemas" : {
+      "FIRST_NAME" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "FIRST_NAME"
+        },
+        "isOptional" : true
+      },
+      "LAST_NAME" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "LAST_NAME"
+        },
+        "isOptional" : true
+      },
+      "EMAIL" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "EMAIL"
+        },
+        "isOptional" : true
+      },
+      "IP_ADDRESS" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "IP_ADDRESS"
+        },
+        "isOptional" : true
+      },
+      "__ROWID" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ROW_ID"
+        },
+        "isOptional" : true
+      }
+    }
+  },
+  "expected" : {
+    "metadata" : {
+      "command" : "INSERT",
+      "transactionID" : "5.1.1583"
+    },
+    "sourcePartition" : { },
+    "sourceOffset" : {
+      "position" : "00000781BK000001000000800001Q0AN000002O00000208="
+    },
+    "databaseName" : "ORCLPDB1",
+    "schemaName" : "DATATYPE_TESTING",
+    "tableName" : "NO_KEY",
+    "changeType" : "INSERT",
+    "timestamp" : 1483433476000,
+    "keyColumns" : [ {
+      "columnName" : "__ROWID",
+      "value" : "AAAWbqAALAAAAHmAAA",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ROW_ID"
+        },
+        "isOptional" : true
+      }
+    } ],
+    "valueColumns" : [ {
+      "columnName" : "FIRST_NAME",
+      "value" : "Justin",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "FIRST_NAME"
+        },
+        "isOptional" : true
+      }
+    }, {
+      "columnName" : "LAST_NAME",
+      "value" : "Simmons",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "LAST_NAME"
+        },
+        "isOptional" : true
+      }
+    }, {
+      "columnName" : "EMAIL",
+      "value" : "jsimmons0@vimeo.com",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "EMAIL"
+        },
+        "isOptional" : true
+      }
+    }, {
+      "columnName" : "IP_ADDRESS",
+      "value" : "7.101.20.158",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "IP_ADDRESS"
+        },
+        "isOptional" : true
+      }
+    }, {
+      "columnName" : "__ROWID",
+      "value" : "AAAWbqAALAAAAHmAAA",
+      "schema" : {
+        "type" : "STRING",
+        "parameters" : {
+          "io.confluent.kafka.connect.cdc.change.column.name" : "ROW_ID"
+        },
+        "isOptional" : true
+      }
+    } ]
+  }
+}

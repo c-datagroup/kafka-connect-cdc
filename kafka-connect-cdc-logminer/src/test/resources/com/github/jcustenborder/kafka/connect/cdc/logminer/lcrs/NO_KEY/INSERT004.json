@@ -1,0 +1,74 @@
+{
+  "hasChunkData" : false,
+  "sourceDatabaseName" : "ORCLPDB1",
+  "commandType" : "INSERT",
+  "objectOwner" : "DATATYPE_TESTING",
+  "objectName" : "NO_KEY",
+  "tag" : "",
+  "position" : "AAAAHQFdAAAAAQAAAAEAAAAdAVkAAAADAAAAAQE=",
+  "transactionID" : "5.1.1583",
+  "sourceTime" : "eHUBAwM0EQ==",
+  "attributes" : {
+    "ROOT_NAME" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "T1JDTA=="
+    },
+    "ROW_ID" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "QUFBV2JxQUFMQUFBQUhtQUFE"
+    }
+  },
+  "oldValues" : [ ],
+  "newValues" : [ {
+    "columnName" : "FIRST_NAME",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "QmFyYmFyYQ=="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "LAST_NAME",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "QmVubmV0dA=="
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "EMAIL",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "YmJlbm5ldHQzQHRpbWVzb25saW5lLmNvLnVr"
+    },
+    "32kData" : false
+  }, {
+    "columnName" : "IP_ADDRESS",
+    "columnDataType" : 1,
+    "tdefFlag" : false,
+    "is32kData" : false,
+    "charsetId" : 0,
+    "columnData" : {
+      "charset" : 871,
+      "datumType" : 1,
+      "value" : "MTg3LjEyNS4yOC4xMDY="
+    },
+    "32kData" : false
+  } ],
+  "chunkColumnValues" : [ ]
+}
