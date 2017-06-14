@@ -38,6 +38,6 @@ public class OracleSettingsExtension extends SettingsExtension {
   protected Object handleResolve(ParameterContext parameterContext, ExtensionContext extensionContext, Annotation annotation, DockerComposeRule docker) throws ParameterResolutionException {
     Container container = docker.containers().container(XStreamTestConstants.ORACLE_CONTAINER);
     DockerPort dockerPort = container.port(XStreamTestConstants.ORACLE_PORT);
-    return XStreamTestConstants.settings(dockerPort.getIp(), dockerPort.getExternalPort());
+    return XStreamTestConstants.settings(dockerPort.getIp(), dockerPort.getExternalPort(), "test");
   }
 }

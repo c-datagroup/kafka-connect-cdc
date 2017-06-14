@@ -55,6 +55,65 @@
 
     <repositories>
         <repository>
+            <id>confluent</id>
+            <name>Confluent</name>
+            <url>http://packages.confluent.io/maven/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>ossrh</id>
+            <name>OSS Sonatype Nexus </name>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>palantir</id>
+            <url>https://dl.bintray.com/palantir/releases/</url>
+        </repository>
+        <repository>
+            <id>releases</id>
+            <name>Nexus</name>
+            <url>http://maven.csdn.net:8081/nexus/content/repositories/releases/</url>
+        </repository>
+    </repositories>
+    <build>
+        <plugins>
+            <!-- we use a differnet checkstyle -->
+            <plugin>
+                <groupId>se.bjurr.gitchangelog</groupId>
+                <artifactId>git-changelog-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>GenerateGitChangelogMinimal</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <!--<repositories>
+        <repository>
             <id>palantir</id>
             <url>https://dl.bintray.com/palantir/releases/</url>
         </repository>
@@ -68,5 +127,5 @@
             <name>Nexus</name>
             <url>http://maven.csdn.net:8081/nexus/content/repositories/releases/</url>
         </repository>
-    </repositories>
+    </repositories>-->
 </project>

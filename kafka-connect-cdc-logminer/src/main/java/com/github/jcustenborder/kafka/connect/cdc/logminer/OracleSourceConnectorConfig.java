@@ -15,6 +15,7 @@
  */
 package com.github.jcustenborder.kafka.connect.cdc.logminer;
 
+import com.github.jcustenborder.kafka.connect.cdc.ChangeKey;
 import com.github.jcustenborder.kafka.connect.utils.config.ConfigUtils;
 import com.github.jcustenborder.kafka.connect.utils.config.ValidEnum;
 import com.google.common.collect.ImmutableSet;
@@ -26,8 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<OracleConnectionPoolDataSourceFactory> {
+public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<OracleConnectionPoolDataSourceFactory> {
 
+    public static final String LOGMINER_CONTAINER_NAME_CONF = "oracle.logminer.container.name";
     public static final String LOGMINER_SCHEMA_NAME_CONF = "oracle.logminer.schema.name";
     public static final String LOGMINER_TABLE_NAMES_CONF = "oracle.logminer.tables.name";
     public static final String LOGMINER_INITIAL_CHANGE_CONF = "oracle.logminer.initial_change.type";
@@ -39,6 +41,7 @@ class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<OracleC
     public static final String LOGMINER_ALLOWED_OPERATIONS_CONF = "logminer.allowed.operations";
     public static final String LOGMINER_DICTIONARY_SOURCE_CONF = "logminer.dictionary.source";
 
+    static final String LOGMINER_CONTAINER_NAME_DOC = "Name of the Oracle Container.";
     static final String LOGMINER_SCHEMA_NAME_DOC = "Name of the logminer target.";
     static final String LOGMINER_TABLE_NAMES_DOC = "Names of the tables for capturing the changes.";
     static final String LOGMINER_INITIAL_CHANGE_DOC = "type of the initial change to start from.";
@@ -49,12 +52,15 @@ class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<OracleC
     static final String LOGMINER_BATCH_INTERVAL_DOC = "batch processing interval.";
     static final String LOGMINER_IDLE_TIMEOUT_DOC = "idle timeout value.";
     static final String LOGMINER_RECEIVE_WAIT_DOC = "The amount of time to wait in milliseconds when returns null";
+
+    static final String LOGMINER_CONTAINER_NAME_DEFAULT = "PDB1";
     static final int LOGMINER_RECEIVE_WAIT_DEFAULT = 1000;
     static final int LOGMINER_BATCH_INTERVAL_DEFAULT = 30;
     static final int LOGMINER_IDEL_TIMEOUT_DEFAULT = 1;
     static final List<String> LOGMINER_ALLOWED_OPERATIONS_DEFAULT = Arrays.asList(Operations.INSERT.name(), Operations.UPDATE.name(),
             Operations.DELETE.name(), Operations.SELECT_FOR_UPDATE.name());
 
+    public final String logminerContainerName;
     public final String logminerSchemaName;
     public final List<String> logminerTables;
     public final InitialChange initialChange;
@@ -65,6 +71,7 @@ class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<OracleC
     public final int logminerBatchInterval;
     public final int logminerIdleTimeout;
     public final int logminerReceiveWait;
+    public final ChangeKey changeKey;
 
     public OracleSourceConnectorConfig(Map<?, ?> parsedConfig) {
         super(config(), parsedConfig);
@@ -78,6 +85,10 @@ class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<OracleC
         this.logminerReceiveWait = this.getInt(LOGMINER_RECEIVE_WAIT_CONF);
         this.logminerBatchInterval = this.getInt(LOGMINER_BATCH_INTERVAL_CONF);
         this.logminerIdleTimeout = this.getInt(LOGMINER_IDLE_TIMEOUT_CONF);
+        this.logminerContainerName = this.getString(LOGMINER_CONTAINER_NAME_CONF);
+
+        // use a unique ChangeKey to open the Connection Pool to Oracle
+        this.changeKey = new ChangeKey(this.logminerContainerName, this.serverName, this.logminerSchemaName);
     }
 
     public static ConfigDef config() {
@@ -85,6 +96,7 @@ class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<OracleC
                 .define(LOGMINER_RECEIVE_WAIT_CONF, ConfigDef.Type.INT, LOGMINER_RECEIVE_WAIT_DEFAULT, ConfigDef.Importance.LOW, LOGMINER_RECEIVE_WAIT_DOC)
                 .define(LOGMINER_ALLOWED_OPERATIONS_CONF, ConfigDef.Type.LIST, LOGMINER_ALLOWED_OPERATIONS_DEFAULT, ConfigDef.Importance.LOW, LOGMINER_ALLOWED_OPERATIONS_DOC)
                 .define(LOGMINER_SCHEMA_NAME_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, LOGMINER_SCHEMA_NAME_DOC)
+                .define(LOGMINER_CONTAINER_NAME_CONF, ConfigDef.Type.STRING, LOGMINER_CONTAINER_NAME_DEFAULT, ConfigDef.Importance.LOW, LOGMINER_CONTAINER_NAME_DOC)
                 .define(LOGMINER_TABLE_NAMES_CONF, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, LOGMINER_TABLE_NAMES_DOC)
                 .define(LOGMINER_INITIAL_CHANGE_CONF, ConfigDef.Type.STRING, InitialChange.FROM_LATEST_CHANGE.name(), ValidEnum.of(InitialChange.class), ConfigDef.Importance.HIGH, LOGMINER_INITIAL_CHANGE_DOC)
                 .define(LOGMINER_START_SCN_CONF, ConfigDef.Type.LONG, ConfigDef.Importance.LOW, LOGMINER_START_SCN_DOC)

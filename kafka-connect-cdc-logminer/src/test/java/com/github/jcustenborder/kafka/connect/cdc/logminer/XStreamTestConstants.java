@@ -37,7 +37,7 @@ public class XStreamTestConstants {
   public static final String XSTREAM_USERNAME_12C = "c##xstrmadmin";
   public static final String XSTREAM_PASSWORD_12C = "lfnjgksdfbdk";
 
-  public static Map<String, String> settings(String host, Integer port) {
+  public static Map<String, String> settings(String host, Integer port, String schema) {
     Preconditions.checkNotNull(host, "host cannot be null.");
     Preconditions.checkNotNull(port, "port cannot be null.");
     Map<String, String> settings = new LinkedHashMap<>();
@@ -46,7 +46,7 @@ public class XStreamTestConstants {
     settings.put(OracleSourceConnectorConfig.INITIAL_DATABASE_CONF, XStreamTestConstants.ORACLE_ROOT_DATABASE);
     settings.put(OracleSourceConnectorConfig.JDBC_USERNAME_CONF, XStreamTestConstants.XSTREAM_USERNAME_12C);
     settings.put(OracleSourceConnectorConfig.JDBC_PASSWORD_CONF, XStreamTestConstants.XSTREAM_PASSWORD_12C);
-    settings.put(OracleSourceConnectorConfig.XSTREAM_SERVER_NAMES_CONF, XStreamTestConstants.XSTREAM_OUT_SERVER_NAME);
+    settings.put(OracleSourceConnectorConfig.LOGMINER_SCHEMA_NAME_CONF, schema);
     return settings;
   }
 }
