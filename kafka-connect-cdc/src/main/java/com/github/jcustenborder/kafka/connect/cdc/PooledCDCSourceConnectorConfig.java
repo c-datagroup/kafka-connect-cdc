@@ -40,6 +40,9 @@ public abstract class PooledCDCSourceConnectorConfig<T extends ConnectionPoolDat
   static final String JDBC_POOL_MIN_IDLE_CONF = "jdbc.pool.min.idle";
   static final String JDBC_POOL_MIN_IDLE_DOC = "The minimum number of idle CONNECTIONS in the connection pool.";
 
+  static final String CASE_SENSITIVE_CONF = "jdbc.case.sensitive";
+  static final String CASE_SENSITIVE_DOC = "The case sensitivity of the name.";
+
   public final String serverName;
   public final int serverPort;
   public final String initialDatabase;
@@ -49,6 +52,7 @@ public abstract class PooledCDCSourceConnectorConfig<T extends ConnectionPoolDat
   public final int jdbcPoolMaxTotal;
   public final int jdbcPoolMaxIdle;
   public final int jdbcPoolMinIdle;
+  public final boolean caseSensitive;
 
 
   public PooledCDCSourceConnectorConfig(ConfigDef definition, Map<?, ?> originals) {
@@ -61,6 +65,7 @@ public abstract class PooledCDCSourceConnectorConfig<T extends ConnectionPoolDat
     this.serverName = this.getString(SERVER_NAME_CONF);
     this.serverPort = this.getInt(SERVER_PORT_CONF);
     this.initialDatabase = this.getString(INITIAL_DATABASE_CONF);
+    this.caseSensitive = this.getBoolean(CASE_SENSITIVE_CONF);
   }
 
   public static ConfigDef config() {
@@ -72,7 +77,8 @@ public abstract class PooledCDCSourceConnectorConfig<T extends ConnectionPoolDat
         .define(JDBC_PASSWORD_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, JDBC_PASSWORD_DOC)
         .define(JDBC_POOL_MAX_TOTAL_CONF, ConfigDef.Type.INT, 30, ConfigDef.Importance.MEDIUM, JDBC_POOL_MAX_TOTAL_DOC)
         .define(JDBC_POOL_MAX_IDLE_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, JDBC_POOL_MAX_IDLE_DOC)
-        .define(JDBC_POOL_MIN_IDLE_CONF, ConfigDef.Type.INT, 3, ConfigDef.Importance.MEDIUM, JDBC_POOL_MIN_IDLE_DOC);
+        .define(JDBC_POOL_MIN_IDLE_CONF, ConfigDef.Type.INT, 3, ConfigDef.Importance.MEDIUM, JDBC_POOL_MIN_IDLE_DOC)
+        .define(CASE_SENSITIVE_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, CASE_SENSITIVE_DOC);
   }
 
   public abstract T connectionPoolDataSourceFactory();

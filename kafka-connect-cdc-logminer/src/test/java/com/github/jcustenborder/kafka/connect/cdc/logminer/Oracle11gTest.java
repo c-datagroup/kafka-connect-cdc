@@ -28,13 +28,13 @@ public class Oracle11gTest {
   private static final Logger log = LoggerFactory.getLogger(Oracle11gTest.class);
 
   @BeforeAll
-  public static void beforeClass(@DockerFormatString(container = XStreamTestConstants.ORACLE_CONTAINER, port = XStreamTestConstants.ORACLE_PORT, format = XStreamTestConstants.JDBC_URL_FORMAT_11G) String jdbcUrl) throws SQLException, InterruptedException, IOException {
+  public static void beforeClass(@DockerFormatString(container = LogMinerTestConstants.ORACLE_CONTAINER, port = LogMinerTestConstants.ORACLE_PORT, format = LogMinerTestConstants.JDBC_URL_FORMAT_11G) String jdbcUrl) throws SQLException, InterruptedException, IOException {
     flywayMigrate(jdbcUrl);
   }
 
   static void flywayMigrate(String jdbcUrl) throws SQLException {
     Flyway flyway = new Flyway();
-    flyway.setDataSource(jdbcUrl, XStreamTestConstants.USERNAME, XStreamTestConstants.PASSWORD);
+    flyway.setDataSource(jdbcUrl, LogMinerTestConstants.USERNAME, LogMinerTestConstants.PASSWORD);
     flyway.setSchemas("CDC_TESTING");
     flyway.setLocations("db/migration/common", "db/migration/oracle11g");
     flyway.migrate();

@@ -15,7 +15,7 @@
  */
 package com.github.jcustenborder.kafka.connect.cdc.logminer.docker;
 
-import com.github.jcustenborder.kafka.connect.cdc.logminer.XStreamTestConstants;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.LogMinerTestConstants;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,7 +24,7 @@ import java.sql.Statement;
 
 public class Oracle12cClusterHealthCheck extends OracleClusterHealthCheck {
   public Oracle12cClusterHealthCheck() {
-    super(XStreamTestConstants.JDBC_URL_FORMAT_12C_PDB, XStreamTestConstants.XSTREAM_USERNAME_12C, XStreamTestConstants.XSTREAM_PASSWORD_12C);
+    super(LogMinerTestConstants.JDBC_URL_FORMAT_12C_PDB, LogMinerTestConstants.LOGMINER_USERNAME_12C, LogMinerTestConstants.LOGMINER_PASSWORD_12C);
   }
 
   @Override

@@ -64,7 +64,7 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
     public final String logminerSchemaName;
     public final List<String> logminerTables;
     public final InitialChange initialChange;
-    public final long logminerStartSCN;
+    public long logminerStartSCN;
     public final String logminerStartDate;
     public final Set<String> allowedOperations;
     public final DictionarySource dictionarySource;
@@ -126,6 +126,7 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
         INSERT,
         UPDATE,
         DELETE,
+        DDL,
         SELECT_FOR_UPDATE
     }
 }

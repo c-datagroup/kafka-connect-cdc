@@ -31,7 +31,7 @@ public class OracleSourceConnectorTest {
   @BeforeEach
   public void setup() {
     this.oracleSourceConnector = new OracleSourceConnector();
-    this.settings = XStreamTestConstants.settings("localhost", 1521, "test");
+    this.settings = LogMinerTestConstants.settings("localhost", 1521, "test");
   }
 
   @Test

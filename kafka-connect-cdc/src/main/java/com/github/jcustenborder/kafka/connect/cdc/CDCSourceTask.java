@@ -59,7 +59,6 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
 
   SourceRecord createRecord(SchemaPair schemaPair, Change change) {
     Preconditions.checkNotNull(change.metadata(), "change.metadata() cannot return null.");
-//    StructPair structPair = new StructPair(schemaPair);
     final Struct key = new Struct(schemaPair.getKey().schema);
     final Schema keySchema = key.schema();
     final Struct value;

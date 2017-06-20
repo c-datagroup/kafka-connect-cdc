@@ -1,5 +1,9 @@
 package com.github.jcustenborder.kafka.connect.cdc.logminer.oracle;
 
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
+
 /**
  * Created by zhengwx on 2017/6/9.
  */
@@ -15,30 +19,61 @@ public class OracleCDCOperationCode {
     public static final int DDL_CODE = 5;
     public static final int SELECT_FOR_UPDATE_CODE = 25;
 
+    private static final Map<Integer, String> CODE_LABEL = new ImmutableMap.Builder<Integer, String>()
+            .put(INSERT_CODE, "INSERT")
+            .put(DELETE_CODE, "DELETE")
+            .put(UPDATE_CODE, "UPDATE")
+            .put(DDL_CODE, "DDL")
+            .put(SELECT_FOR_UPDATE_CODE, "SELECT_FOR_UPDATE")
+            .build();
+
+    private static final ImmutableMap<String, Integer> LABEL_CODE = new ImmutableMap.Builder<String, Integer>()
+            .put("INSERT", INSERT_CODE)
+            .put("DELETE", DELETE_CODE)
+            .put("UPDATE", UPDATE_CODE)
+            .put("DDL_CODE", DDL_CODE)
+            .put("SELECT_FOR_UPDATE", SELECT_FOR_UPDATE_CODE)
+            .build();
+
+
     /**
-     * This is called when JDBC target didn't find sdc.operation.code in record header
-     * but found oracle.cdc.operation. Since oracle.cdc.operation contains Oracle specific
-     * operation code, we need to convert to SDC operation code.
-     * @param code Operation code defined by Oracle.
-     * @return Operation code defined by SDC.
+     * Convert from code in int type to String
+     * @param code
+     * @return
      */
-    public static int convertFromOracleToSDCCode(String code){
+    public static String getLabelFromIntCode(int code)  {
+        if (CODE_LABEL.containsKey(code)){
+            return CODE_LABEL.get(code);
+        }
+        return "UNSUPPORTED";
+    }
+
+    /**
+     * Convert from code in String type to label
+     * @param code
+     * @return
+     */
+    public static String getLabelFromStringCode(String code) throws NumberFormatException {
         try {
             int intCode = Integer.parseInt(code);
-            switch (intCode) {
-                case INSERT_CODE:
-                    return OperationType.INSERT_CODE;
-                case DELETE_CODE:
-                    return OperationType.DELETE_CODE;
-                case UPDATE_CODE:
-                case SELECT_FOR_UPDATE_CODE:
-                    return OperationType.UPDATE_CODE;
-                default:  //DDL_CODE
-                    throw new UnsupportedOperationException(String.format("Operation code {} is not supported", code));
-            }
+            return getLabelFromIntCode(intCode);
         } catch (NumberFormatException ex) {
-            throw new NumberFormatException("Operation code must be a numeric value. " + ex.getMessage());
+            throw new NumberFormatException(
+                    String.format("%s but received '%s'","operation code must be numeric", code)
+            );
         }
+    }
+
+    /**
+     * Convert from label in String to Code.
+     * @param op
+     * @return int value of the code. -1 if not defined.
+     */
+    public static int getCodeFromLabel(String op) {
+        if (LABEL_CODE.containsKey(op)) {
+            return LABEL_CODE.get(op);
+        }
+        return -1;
     }
 }
 

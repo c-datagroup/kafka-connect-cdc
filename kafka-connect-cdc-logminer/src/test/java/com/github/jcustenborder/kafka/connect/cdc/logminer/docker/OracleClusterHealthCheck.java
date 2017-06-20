@@ -15,7 +15,7 @@
  */
 package com.github.jcustenborder.kafka.connect.cdc.logminer.docker;
 
-import com.github.jcustenborder.kafka.connect.cdc.logminer.XStreamTestConstants;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.LogMinerTestConstants;
 import com.palantir.docker.compose.connection.Cluster;
 import com.palantir.docker.compose.connection.Container;
 import com.palantir.docker.compose.connection.DockerPort;
@@ -49,10 +49,10 @@ public abstract class OracleClusterHealthCheck implements ClusterHealthCheck {
     return SuccessOrFailure.onResultOf(new Attempt() {
       @Override
       public boolean attempt() throws Exception {
-        Container oracleContainer = cluster.container(XStreamTestConstants.ORACLE_CONTAINER);
-        DockerPort dockerPort = oracleContainer.port(XStreamTestConstants.ORACLE_PORT);
+        Container oracleContainer = cluster.container(LogMinerTestConstants.ORACLE_CONTAINER);
+        DockerPort dockerPort = oracleContainer.port(LogMinerTestConstants.ORACLE_PORT);
         if (!dockerPort.isListeningNow()) {
-          log.trace("Port {} is not listening on container {}.", XStreamTestConstants.ORACLE_PORT, XStreamTestConstants.ORACLE_CONTAINER);
+          log.trace("Port {} is not listening on container {}.", LogMinerTestConstants.ORACLE_PORT, LogMinerTestConstants.ORACLE_CONTAINER);
           return false;
         }
 

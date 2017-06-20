@@ -15,7 +15,7 @@
  */
 package com.github.jcustenborder.kafka.connect.cdc.logminer.docker;
 
-import com.github.jcustenborder.kafka.connect.cdc.logminer.XStreamTestConstants;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.LogMinerTestConstants;
 import com.palantir.docker.compose.DockerComposeRule;
 import com.palantir.docker.compose.connection.Container;
 import com.palantir.docker.compose.connection.DockerPort;
@@ -36,8 +36,8 @@ public class OracleSettingsExtension extends SettingsExtension {
 
   @Override
   protected Object handleResolve(ParameterContext parameterContext, ExtensionContext extensionContext, Annotation annotation, DockerComposeRule docker) throws ParameterResolutionException {
-    Container container = docker.containers().container(XStreamTestConstants.ORACLE_CONTAINER);
-    DockerPort dockerPort = container.port(XStreamTestConstants.ORACLE_PORT);
-    return XStreamTestConstants.settings(dockerPort.getIp(), dockerPort.getExternalPort(), "test");
+    Container container = docker.containers().container(LogMinerTestConstants.ORACLE_CONTAINER);
+    DockerPort dockerPort = container.port(LogMinerTestConstants.ORACLE_PORT);
+    return LogMinerTestConstants.settings(dockerPort.getIp(), dockerPort.getExternalPort(), "test");
   }
 }

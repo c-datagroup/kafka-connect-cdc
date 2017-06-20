@@ -17,7 +17,7 @@ package com.github.jcustenborder.kafka.connect.cdc.logminer;
 
 import com.palantir.docker.compose.connection.waiting.ClusterHealthCheck;
 import com.github.jcustenborder.kafka.connect.cdc.docker.DockerFormatString;
-import com.github.jcustenborder.kafka.connect.cdc.xstream.docker.Oracle12cClusterHealthCheck;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.docker.Oracle12cClusterHealthCheck;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
@@ -33,14 +33,14 @@ public class Oracle12cTest {
 
   @BeforeAll
   public static void beforeClass(
-      @DockerFormatString(container = XStreamTestConstants.ORACLE_CONTAINER, port = XStreamTestConstants.ORACLE_PORT, format = XStreamTestConstants.JDBC_URL_FORMAT_12C_PDB) String jdbcUrl
+      @DockerFormatString(container = LogMinerTestConstants.ORACLE_CONTAINER, port = LogMinerTestConstants.ORACLE_PORT, format = LogMinerTestConstants.JDBC_URL_FORMAT_12C_PDB) String jdbcUrl
   ) throws SQLException, InterruptedException, IOException {
     flywayMigrate(jdbcUrl, "db/migration/common", "db/migration/oracle12c");
   }
 
   static void flywayMigrate(String jdbcUrl, String... locations) throws SQLException {
     Flyway flyway = new Flyway();
-    flyway.setDataSource(jdbcUrl, XStreamTestConstants.USERNAME, XStreamTestConstants.PASSWORD);
+    flyway.setDataSource(jdbcUrl, LogMinerTestConstants.USERNAME, LogMinerTestConstants.PASSWORD);
     flyway.setSchemas("DATATYPE_TESTING");
     flyway.setLocations(locations);
     flyway.migrate();

@@ -317,11 +317,8 @@ public class OracleCDCSource {
         }
     }
 
-    private void generateRecords(
-            int batchSize,
-            PreparedStatement selectChanges,
-            boolean forceNewResultSet
-    ) throws SQLException, LogminerException, ParseException {
+    private void generateRecords(int batchSize, PreparedStatement selectChanges, boolean forceNewResultSet) throws SQLException, LogminerException, ParseException {
+
         String operation;
         StringBuilder query = new StringBuilder();
         ResultSet resultSet;
@@ -366,15 +363,15 @@ public class OracleCDCSource {
                         case OracleCDCOperationCode.UPDATE_CODE:
                         case OracleCDCOperationCode.SELECT_FOR_UPDATE_CODE:
                             ruleContext = parser.update_statement();
-                            operationCode = OperationType.UPDATE_CODE;
+                            operationCode = OracleCDCOperationCode.UPDATE_CODE;
                             break;
                         case OracleCDCOperationCode.INSERT_CODE:
                             ruleContext = parser.insert_statement();
-                            operationCode = OperationType.INSERT_CODE;
+                            operationCode = OracleCDCOperationCode.INSERT_CODE;
                             break;
                         case OracleCDCOperationCode.DELETE_CODE:
                             ruleContext = parser.delete_statement();
-                            operationCode = OperationType.DELETE_CODE;
+                            operationCode = OracleCDCOperationCode.DELETE_CODE;
                             break;
                         case OracleCDCOperationCode.DDL_CODE:
                             break;
@@ -383,7 +380,7 @@ public class OracleCDCSource {
                             continue;
                     }
                     if (op != OracleCDCOperationCode.DDL_CODE) {
-                        operation = OperationType.getLabelFromIntCode(operationCode);
+                        operation = OracleCDCOperationCode.getLabelFromIntCode(operationCode);
                         scnSeq = commitSCN + OFFSET_DELIM + seq;
                         // Walk it and attach our sqlListener
                         parseTreeWalker.walk(sqlListener, ruleContext);
@@ -462,7 +459,7 @@ public class OracleCDCSource {
             if (!tableSchemaLastUpdate.containsKey(table) || scnDecimal.compareTo(tableSchemaLastUpdate.get(table)) > 0) {
                 if (containerized) {
                     try (Statement switchToPdb = connection.createStatement()) {
-                        switchToPdb.execute("ALTER SESSION SET CONTAINER = " + this.con.pdb);
+                        switchToPdb.execute("ALTER SESSION SET CONTAINER = " + this.config.logminerContainerName);
                     }
                 }
                 tableSchemas.put(table, getTableSchema(table));
@@ -470,8 +467,7 @@ public class OracleCDCSource {
                 return true;
             }
             return false;
-        }
-        finally {
+        } finally {
             alterSession();
         }
     }
@@ -526,8 +522,7 @@ public class OracleCDCSource {
             startLogMnr.execute();
             cachedSCN = oldestSCN;
             if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        Utils.format("Started LogMiner with start offset: {} and end offset: {}",
+                LOG.debug(Utils.format("Started LogMiner with start offset: {} and end offset: {}",
                                 oldestSCN.toPlainString(), endSCN.toPlainString()));
             }
         } catch (SQLException ex) {
@@ -547,7 +542,7 @@ public class OracleCDCSource {
         }
 
         String container = this.config.logminerContainerName;
-        List<String> tables;
+        List<String> tables = new ArrayList<>(this.config.logminerTables.size());
 
         try {
             initializeStatements();
@@ -555,66 +550,58 @@ public class OracleCDCSource {
         } catch (SQLException ex) {
             LOG.error("Error while creating statement", ex);
         }
-        String commitScnField;
+        String commitScnField = "";
         BigDecimal scn = null;
         try {
             scn = getEndingSCN();
-            if(this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_SCN) {
-                    if (new BigDecimal(this.config.logminerStartSCN).compareTo(scn) > 0) {
+            if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_SCN) {
+                if (new BigDecimal(this.config.logminerStartSCN).compareTo(scn) > 0) {
 
+                }
+            } else if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_DATE) {
+                try {
+                    Date startDate = getDate(this.config.logminerStartDate);
+                    if (startDate.after(new Date(System.currentTimeMillis()))) {
                     }
-            }
-            else if(this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_DATE){
-                    try {
-                        Date startDate = getDate(configBean.startDate);
-                        if (startDate.after(new Date(System.currentTimeMillis()))) {
-                        }
-                    } catch (ParseException ex) {
-                        LOG.error("Invalid date", ex);
-                    }
-            }
-                case LATEST:
-                    configBean.startSCN = scn.toPlainString();
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown start value!");
+                } catch (ParseException ex) {
+                    LOG.error("Invalid date", ex);
+                }
+            } else if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.FROM_LATEST_CHANGE) {
+                this.config.logminerStartSCN = scn.longValue();
+            } else {
+                throw new IllegalStateException("Unknown start value!");
             }
         } catch (SQLException ex) {
             LOG.error("Error while getting SCN", ex);
         }
 
         try (Statement reusedStatement = connection.createStatement()) {
-            int majorVersion = getDBVersion(issues);
+            int majorVersion = getDBVersion();
             // If version is 12+, then the check for table presence must be done in an alternate container!
             if (majorVersion == -1) {
-                return issues;
+                return;
             }
             if (majorVersion >= 12) {
                 if (!StringUtils.isEmpty(container)) {
-                    String switchToPdb = "ALTER SESSION SET CONTAINER = " + configBean.pdb;
+                    String switchToPdb = "ALTER SESSION SET CONTAINER = " + this.config.logminerContainerName;
                     try {
                         reusedStatement.execute(switchToPdb);
                     } catch (SQLException ex) {
                         LOG.error("Error while switching to container: " + container, ex);
-                        issues.add(getContext().createConfigIssue(Groups.CREDENTIALS.name(), USERNAME, JDBC_40, container));
-                        return issues;
                     }
                     containerized = true;
                 }
             }
-            tables = new ArrayList<>(configBean.baseConfigBean.tables.size());
-            for (String table : configBean.baseConfigBean.tables) {
+            for (String table : this.config.logminerTables) {
                 table = table.trim();
-                if (!configBean.baseConfigBean.caseSensitive) {
+                if (!this.config.caseSensitive) {
                     tables.add(table.toUpperCase());
                 } else {
                     tables.add(table);
                 }
             }
-            validateTablePresence(reusedStatement, tables, issues);
-            if (!issues.isEmpty()) {
-                return issues;
-            }
+            validateTablePresence(reusedStatement, tables);
+
             for (String table : tables) {
                 table = table.trim();
                 try {
@@ -624,7 +611,6 @@ public class OracleCDCSource {
                     }
                 } catch (SQLException ex) {
                     LOG.error("Error while switching to container: " + container, ex);
-                    issues.add(getContext().createConfigIssue(Groups.CREDENTIALS.name(), USERNAME, JDBC_50));
                 }
             }
             container = CDB_ROOT;
@@ -636,8 +622,6 @@ public class OracleCDCSource {
                     // Fatal only if we switched to a PDB earlier
                     if (containerized) {
                         LOG.error("Error while switching to container: " + container, ex);
-                        issues.add(getContext().createConfigIssue(Groups.CREDENTIALS.name(), USERNAME, JDBC_40, container));
-                        return issues;
                     }
                     // Log it anyway
                     LOG.info("Switching containers failed, ignoring since there was no PDB switch", ex);
@@ -646,10 +630,6 @@ public class OracleCDCSource {
             commitScnField = majorVersion >= 11 ? "COMMIT_SCN" : "CSCN";
         } catch (SQLException ex) {
             LOG.error("Error while creating statement", ex);
-            issues.add(getContext().createConfigIssue(
-                    Groups.CDC.name(), "oracleCDCConfigBean.baseConfigBean.database",
-                    JDBC_00, configBean.baseConfigBean.database));
-            return issues;
         }
 
         final String ddlTracking = shouldTrackDDL ? " + DBMS_LOGMNR.DDL_DICT_TRACKING" : "";
@@ -658,7 +638,7 @@ public class OracleCDCSource {
                 + " DBMS_LOGMNR.START_LOGMNR("
                 + " STARTSCN => ?,"
                 + " ENDSCN => ?,"
-                + " OPTIONS => DBMS_LOGMNR." + configBean.dictionary.name()
+                + " OPTIONS => DBMS_LOGMNR." + this.config.dictionarySource.name()
                 + "          + DBMS_LOGMNR.CONTINUOUS_MINE"
                 + "          + DBMS_LOGMNR.COMMITTED_DATA_ONLY"
                 + "          + DBMS_LOGMNR.NO_ROWID_IN_STMT"
@@ -675,25 +655,22 @@ public class OracleCDCSource {
                         " WHERE" +
                         " SEG_OWNER='{}' AND TABLE_NAME IN ({})" +
                         " AND {}",
-                configBean.baseConfigBean.database, formatTableList(tables) // the final one is filled in differently by each one
+                this.config.initialDatabase, formatTableList(tables) // the final one is filled in differently by each one
         );
 
         redoLogEntriesSql = Utils.format(baseLogEntriesSql,
-                "((((" + commitScnField + " = ? AND SEQUENCE# > ?) OR " + commitScnField + " > ?) AND OPERATION_CODE IN (" + getSupportedOperations() + ")) " +
-                        getDDLOperationsClauseSCN() + ")");
+                "((((" + commitScnField + " = ? AND SEQUENCE# > ?) OR " + commitScnField + " > ?) AND OPERATION_CODE IN (" +
+                        getSupportedOperations() + ")) " + getDDLOperationsClauseSCN() + ")");
 
         try {
             initializeLogMnrStatements();
         } catch (SQLException ex) {
             LOG.error("Error while creating statement", ex);
-            issues.add(getContext().createConfigIssue(
-                    Groups.CDC.name(), "oracleCDCConfigBean.baseConfigBean.database", JDBC_00, configBean.baseConfigBean.database));
         }
 
-        if (configBean.baseConfigBean.caseSensitive) {
+        if (this.config.caseSensitive) {
             sqlListener.setCaseSensitive();
         }
-        return issues;
     }
 
     private String getDDLOperationsClauseSCN() {
@@ -703,9 +680,22 @@ public class OracleCDCSource {
 
     private String getDDLOperationsClauseDate() {
         return shouldTrackDDL ?
-                "OR (OPERATION_CODE = " + OracleCDCOperationCode.DDL_CODE + " AND TIMESTAMP >= TO_DATE('" + configBean.startDate + "', 'DD-MM-YYYY HH24:MI:SS'))" : "";
+                "OR (OPERATION_CODE = " + OracleCDCOperationCode.DDL_CODE + " AND TIMESTAMP >= TO_DATE('" +
+                        this.config.logminerStartDate + "', 'DD-MM-YYYY HH24:MI:SS'))" : "";
     }
 
+    private String getSupportedOperations() {
+        List<Integer> supportedOps = new ArrayList<>();
+
+        for (String operation : this.config.allowedOperations) {
+            int code = OracleCDCOperationCode.getCodeFromLabel(operation);
+            if (code != -1) {
+                supportedOps.add(code);
+            }
+        }
+        Joiner joiner = Joiner.on(',');
+        return joiner.join(supportedOps);
+    }
 
     private void initializeStatements() throws SQLException {
         getOldestSCN = connection.prepareStatement(GET_OLDEST_SCN);
@@ -736,30 +726,6 @@ public class OracleCDCSource {
         return joiner.join(quoted);
     }
 
-    private String getSupportedOperations() {
-        List<Integer> supportedOps = new ArrayList<>();
-
-        for (ChangeTypeValues change : configBean.baseConfigBean.changeTypes) {
-            switch (change) {
-                case INSERT:
-                    supportedOps.add(OracleCDCOperationCode.INSERT_CODE);
-                    break;
-                case UPDATE:
-                    supportedOps.add(OracleCDCOperationCode.UPDATE_CODE);
-                    break;
-                case DELETE:
-                    supportedOps.add(OracleCDCOperationCode.DELETE_CODE);
-                    break;
-                case SELECT_FOR_UPDATE:
-                    supportedOps.add(OracleCDCOperationCode.SELECT_FOR_UPDATE_CODE);
-                    break;
-                default:
-            }
-        }
-        Joiner joiner = Joiner.on(',');
-        return joiner.join(supportedOps);
-    }
-
     private BigDecimal getEndingSCN() throws SQLException {
         try (ResultSet rs = getLatestSCN.executeQuery()) {
             if (!rs.next()) {
@@ -771,24 +737,23 @@ public class OracleCDCSource {
         }
     }
 
-    private void validateTablePresence(Statement statement, List<String> tables, List<ConfigIssue> issues) {
+    private void validateTablePresence(Statement statement, List<String> tables) {
         for (String table : tables) {
             try {
-                statement.execute("SELECT * FROM \"" + configBean.baseConfigBean.database + "\".\"" + table + "\" WHERE 1 = 0");
+                statement.execute("SELECT * FROM \"" + this.config.logminerSchemaName + "\".\"" + table + "\" WHERE 1 = 0");
             } catch (SQLException ex) {
                 StringBuilder sb = new StringBuilder("Table: ").append(table).append(" does not exist.");
-                if (StringUtils.isEmpty(configBean.pdb)) {
+                if (StringUtils.isEmpty(this.config.logminerContainerName)) {
                     sb.append(" PDB was not specified. If the database was created inside a PDB, please specify PDB");
                 }
                 LOG.error(sb.toString(), ex);
-                issues.add(getContext().createConfigIssue(Groups.CDC.name(), "oracleCDCConfigBean.baseConfigBean.tables", JDBC_16, table));
             }
         }
     }
 
     private Map<String, Integer> getTableSchema(String tableName) throws SQLException {
         Map<String, Integer> columns = new HashMap<>();
-        String query = "SELECT * FROM \"" + configBean.baseConfigBean.database + "\".\"" + tableName + "\" WHERE 1 = 0";
+        String query = "SELECT * FROM \"" + this.config.logminerSchemaName + "\".\"" + tableName + "\" WHERE 1 = 0";
         try (Statement schemaStatement = connection.createStatement();
              ResultSet rs = schemaStatement.executeQuery(query)) {
             ResultSetMetaData md = rs.getMetaData();
@@ -796,7 +761,7 @@ public class OracleCDCSource {
             for (int i = 1; i <= colCount; i++) {
                 int colType = md.getColumnType(i);
                 String colName = md.getColumnName(i);
-                if (!configBean.baseConfigBean.caseSensitive) {
+                if (!this.config.caseSensitive) {
                     colName = colName.toUpperCase();
                 }
                 if (colType == Types.DATE || colType == Types.TIME || colType == Types.TIMESTAMP) {
@@ -814,7 +779,7 @@ public class OracleCDCSource {
         return columns;
     }
 
-    private int getDBVersion(List<ConfigIssue> issues) {
+    private int getDBVersion() {
         // Getting metadata version using connection.getMetaData().getDatabaseProductVersion() returns 12c which makes
         // comparisons brittle, so use the actual numerical versions.
         try (Statement statement = connection.createStatement();
@@ -829,12 +794,10 @@ public class OracleCDCSource {
             }
         } catch (SQLException ex) {
             LOG.error("Error while getting db version info", ex);
-            issues.add(getContext().createConfigIssue(Groups.JDBC.name(), CONNECTION_STR, JDBC_41));
         }
         return -1;
     }
 
-    @Override
     public void destroy() {
 
         try {
@@ -856,11 +819,6 @@ public class OracleCDCSource {
             LOG.warn("Error while closing connection to database", ex);
         }
 
-        // And finally the hiraki data source
-        if (dataSource != null) {
-            dataSource.close();
-        }
-
         if (resultSetClosingFuture != null && !resultSetClosingFuture.isDone()) {
             resultSetClosingFuture.cancel(true);
         }
@@ -879,120 +837,6 @@ public class OracleCDCSource {
             } catch (SQLException e) {
                 LOG.warn("Error while closing connection to database", e);
             }
-        }
-    }
-
-    private Field objectToField(String table, String column, String columnValue) throws ParseException, StageException {
-        Map<String, Integer> tableSchema = tableSchemas.get(table);
-        if (!tableSchema.containsKey(column)) {
-            throw new StageException(JDBC_54, column, table);
-        }
-        int columnType = tableSchema.get(column);
-
-        Field field;
-        // All types as of JDBC 2.0 are here:
-        // https://docs.oracle.com/javase/8/docs/api/constant-values.html#java.sql.Types.ARRAY
-        // Good source of recommended mappings is here:
-        // http://www.cs.mun.ca/java-api-1.5/guide/jdbc/getstart/mapping.html
-        columnValue = NULL.equalsIgnoreCase(columnValue) ? null : columnValue; //NOSONAR
-        switch (columnType) {
-            case Types.BIGINT:
-                field = Field.create(Field.Type.LONG, columnValue);
-                break;
-            case Types.BINARY:
-            case Types.LONGVARBINARY:
-            case Types.VARBINARY:
-                field = Field.create(Field.Type.BYTE_ARRAY, columnValue);
-                break;
-            case Types.BIT:
-            case Types.BOOLEAN:
-                field = Field.create(Field.Type.BOOLEAN, columnValue);
-                break;
-            case Types.CHAR:
-            case Types.LONGNVARCHAR:
-            case Types.LONGVARCHAR:
-            case Types.NCHAR:
-            case Types.NVARCHAR:
-            case Types.VARCHAR:
-                field = Field.create(Field.Type.STRING, columnValue);
-                break;
-            case Types.DECIMAL:
-            case Types.NUMERIC:
-                field = Field.create(Field.Type.DECIMAL, columnValue);
-                break;
-            case Types.DOUBLE:
-                field = Field.create(Field.Type.DOUBLE, columnValue);
-                break;
-            case Types.FLOAT:
-            case Types.REAL:
-                field = Field.create(Field.Type.FLOAT, columnValue);
-                break;
-            case Types.INTEGER:
-                field = Field.create(Field.Type.INTEGER, columnValue);
-                break;
-            case Types.SMALLINT:
-            case Types.TINYINT:
-                field = Field.create(Field.Type.SHORT, columnValue);
-                break;
-            case Types.DATE:
-            case Types.TIME:
-            case Types.TIMESTAMP:
-                // For whatever reason, Oracle returns all the date/time/timestamp fields as the same type, so additional
-                // logic is required to accurately parse the type
-                String actualType = dateTimeColumns.get(table).get(column);
-                field = getDateTimeStampField(column, columnValue, columnType, actualType);
-                break;
-            case Types.ROWID:
-            case Types.CLOB:
-            case Types.NCLOB:
-            case Types.BLOB:
-            case Types.ARRAY:
-            case Types.DATALINK:
-            case Types.DISTINCT:
-            case Types.JAVA_OBJECT:
-            case Types.NULL:
-            case Types.OTHER:
-            case Types.REF:
-                //case Types.REF_CURSOR: // JDK8 only
-            case Types.SQLXML:
-            case Types.STRUCT:
-                //case Types.TIME_WITH_TIMEZONE: // JDK8 only
-                //case Types.TIMESTAMP_WITH_TIMEZONE: // JDK8 only
-            default:
-                throw new StageException(JDBC_37, columnType, column);
-        }
-
-        return field;
-    }
-
-    /**
-     * This method returns an {@linkplain Field} that represents a DATE, TIME or TIMESTAMP. It is possible for user to upgrade
-     * a field from DATE to TIMESTAMP, and if we read the table schema on startup after this upgrade, we would assume the field
-     * should be returned as DATETIME field. But it is possible that the first change we read was made before the upgrade from
-     * DATE to TIMESTAMP. So we check whether the returned SQL has TO_TIMESTAMP - if it does we return it as DATETIME, else we
-     * return it as DATE.
-     */
-    private Field getDateTimeStampField(String column, String columnValue, int columnType, String actualType) throws StageException, ParseException {
-        Field.Type type;
-        if (DATE.equalsIgnoreCase(actualType)) {
-            type = Field.Type.DATE;
-        } else if (TIME.equalsIgnoreCase(actualType)) {
-            type = Field.Type.TIME;
-        } else if (TIMESTAMP.equalsIgnoreCase(actualType)) {
-            type = Field.Type.DATETIME;
-        } else {
-            throw new StageException(JDBC_37, columnType, column);
-        }
-        if (columnValue == null) {
-            return Field.create(type, null);
-        } else {
-            Optional<String> ts = matchDateTimeString(TO_TIMESTAMP_PATTERN.matcher(columnValue));
-            if (ts.isPresent()) {
-                return Field.create(type, Timestamp.valueOf(ts.get()));
-            }
-            // We did not find TO_TIMESTAMP, so try TO_DATE
-            Optional<String> dt = matchDateTimeString(TO_DATE_PATTERN.matcher(columnValue));
-            return Field.create(Field.Type.DATE, dt.isPresent() ? getDate(dt.get()) : null);
         }
     }
 
@@ -1019,11 +863,6 @@ public class OracleCDCSource {
     @VisibleForTesting
     void setConnection(Connection conn) {
         this.connection = conn;
-    }
-
-    @VisibleForTesting
-    void setDataSource(HikariDataSource dataSource) {
-        this.dataSource = dataSource;
     }
 
     private class PrecisionAndScale {
