@@ -37,8 +37,8 @@ class OracleConnectionPoolDataSourceFactory implements ConnectionPoolDataSourceF
   @Override
   public ConnectionPoolDataSource connectionPool(ConnectionKey connectionKey) throws SQLException {
     OracleConnectionPoolDataSource a = new OracleConnectionPoolDataSource();
+    a.setURL(this.config.jdbcURL);
     a.setUser(this.config.jdbcUsername);
-    a.setDriverType("oci");
     a.setPassword(this.config.jdbcPassword);
     a.setServerName(this.config.serverName);
     a.setPortNumber(this.config.serverPort);

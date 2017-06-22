@@ -20,12 +20,14 @@ import com.github.jcustenborder.kafka.connect.cdc.docker.DockerFormatString;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.docker.Oracle12cClusterHealthCheck;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
 
+@Disabled
 public class Oracle12cTest {
   public static final String DOCKER_COMPOSE_FILE = "src/test/resources/docker-compose-12c.yml";
   public static final Class<? extends ClusterHealthCheck> CLUSTER_HEALTH_CHECK_CLASS = Oracle12cClusterHealthCheck.class;

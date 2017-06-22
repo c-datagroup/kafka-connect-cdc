@@ -16,6 +16,7 @@
 package com.github.jcustenborder.kafka.connect.cdc.logminer;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+@Disabled
 public class OracleSourceConnectorTest {
   public OracleSourceConnector oracleSourceConnector;
   Map<String, String> settings;

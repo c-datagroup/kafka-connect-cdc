@@ -22,13 +22,13 @@ import com.github.jcustenborder.kafka.connect.cdc.docker.DockerCompose;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.docker.Oracle12cClusterHealthCheck;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.docker.OracleSettings;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.docker.OracleSettingsExtension;
-import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ServiceManager;
 import oracle.streams.StreamsException;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.junit.experimental.categories.Category;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -42,10 +42,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
+@Disabled
 @Category(Integration.class)
 @DockerCompose(dockerComposePath = Oracle12cTest.DOCKER_COMPOSE_FILE, clusterHealthCheck = Oracle12cClusterHealthCheck.class)
 @ExtendWith(OracleSettingsExtension.class)
@@ -73,7 +72,7 @@ public class QueryServiceTest extends Oracle12cTest {
   public void receiveLCR() throws SQLException, StreamsException, TimeoutException {
     final List<Change> changes = new ArrayList<>();
 
-    doAnswer(invocationOnMock -> {
+    /*doAnswer(invocationOnMock -> {
       Change change = invocationOnMock.getArgument(0);
       changes.add(change);
       return null;
@@ -90,7 +89,7 @@ public class QueryServiceTest extends Oracle12cTest {
       if (null != oracleChange) {
         changes.add(oracleChange);
       }
-    }
+    }*/
   }
 
   @AfterEach

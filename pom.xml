@@ -37,10 +37,10 @@
     <modules>
         <module>kafka-connect-cdc</module>
         <module>kafka-connect-cdc-test</module>
-        <module>kafka-connect-cdc-mssql</module>
+        <!--<module>kafka-connect-cdc-mssql</module>-->
         <module>kafka-connect-cdc-mysql</module>
-        <module>kafka-connect-cdc-postgres</module>
-        <module>kafka-connect-cdc-xstream</module>
+        <!--<module>kafka-connect-cdc-postgres</module>-->
+        <!--<module>kafka-connect-cdc-xstream</module>-->
 		<module>kafka-connect-cdc-logminer</module>
     </modules>
 

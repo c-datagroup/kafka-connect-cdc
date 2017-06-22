@@ -18,14 +18,12 @@ package com.github.jcustenborder.kafka.connect.cdc.logminer;
 import com.github.jcustenborder.kafka.connect.cdc.ChangeKey;
 import com.github.jcustenborder.kafka.connect.utils.config.ConfigUtils;
 import com.github.jcustenborder.kafka.connect.utils.config.ValidEnum;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.github.jcustenborder.kafka.connect.cdc.PooledCDCSourceConnectorConfig;
 import org.apache.kafka.common.config.ConfigDef;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<OracleConnectionPoolDataSourceFactory> {
 
@@ -88,7 +86,8 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
         this.logminerContainerName = this.getString(LOGMINER_CONTAINER_NAME_CONF);
 
         // use a unique ChangeKey to open the Connection Pool to Oracle
-        this.changeKey = new ChangeKey(this.logminerContainerName, this.serverName, this.logminerSchemaName);
+        String tableNames = Joiner.on('-').join(this.logminerTables);
+        this.changeKey = new ChangeKey(this.initialDatabase,  this.logminerSchemaName,  tableNames);
     }
 
     public static ConfigDef config() {
@@ -97,11 +96,11 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
                 .define(LOGMINER_ALLOWED_OPERATIONS_CONF, ConfigDef.Type.LIST, LOGMINER_ALLOWED_OPERATIONS_DEFAULT, ConfigDef.Importance.LOW, LOGMINER_ALLOWED_OPERATIONS_DOC)
                 .define(LOGMINER_SCHEMA_NAME_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, LOGMINER_SCHEMA_NAME_DOC)
                 .define(LOGMINER_CONTAINER_NAME_CONF, ConfigDef.Type.STRING, LOGMINER_CONTAINER_NAME_DEFAULT, ConfigDef.Importance.LOW, LOGMINER_CONTAINER_NAME_DOC)
-                .define(LOGMINER_TABLE_NAMES_CONF, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, LOGMINER_TABLE_NAMES_DOC)
+                .define(LOGMINER_TABLE_NAMES_CONF, ConfigDef.Type.LIST, ConfigDef.Importance.LOW, LOGMINER_TABLE_NAMES_DOC)
                 .define(LOGMINER_INITIAL_CHANGE_CONF, ConfigDef.Type.STRING, InitialChange.FROM_LATEST_CHANGE.name(), ValidEnum.of(InitialChange.class), ConfigDef.Importance.HIGH, LOGMINER_INITIAL_CHANGE_DOC)
-                .define(LOGMINER_START_SCN_CONF, ConfigDef.Type.LONG, ConfigDef.Importance.LOW, LOGMINER_START_SCN_DOC)
-                .define(LOGMINER_START_DATE_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.LOW, LOGMINER_START_DATE_DOC)
-                .define(LOGMINER_DICTIONARY_SOURCE_CONF, ConfigDef.Type.STRING, DictionarySource.ONLINE_CATALOG.name(), ValidEnum.of(DictionarySource.class), ConfigDef.Importance.HIGH, LOGMINER_DICTIONARY_SOURCE_DOC)
+                .define(LOGMINER_START_SCN_CONF, ConfigDef.Type.LONG, 0, ConfigDef.Importance.LOW, LOGMINER_START_SCN_DOC)
+                .define(LOGMINER_START_DATE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, LOGMINER_START_DATE_DOC)
+                .define(LOGMINER_DICTIONARY_SOURCE_CONF, ConfigDef.Type.STRING, DictionarySource.DICT_FROM_ONLINE_CATALOG.name(), ValidEnum.of(DictionarySource.class), ConfigDef.Importance.HIGH, LOGMINER_DICTIONARY_SOURCE_DOC)
                 .define(LOGMINER_BATCH_INTERVAL_CONF, ConfigDef.Type.INT, LOGMINER_BATCH_INTERVAL_DEFAULT, ConfigDef.Importance.MEDIUM, LOGMINER_BATCH_INTERVAL_DOC)
                 .define(LOGMINER_IDLE_TIMEOUT_CONF, ConfigDef.Type.INT, LOGMINER_IDEL_TIMEOUT_DEFAULT, ConfigDef.Importance.MEDIUM, LOGMINER_IDLE_TIMEOUT_DOC);
     }
@@ -118,8 +117,8 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
     }
 
     public enum DictionarySource {
-        REDO_LOGS,
-        ONLINE_CATALOG
+        DICT_FROM_ONLINE_CATALOG,
+        DICT_FROM_REDO_LOGS
     }
 
     public enum Operations {

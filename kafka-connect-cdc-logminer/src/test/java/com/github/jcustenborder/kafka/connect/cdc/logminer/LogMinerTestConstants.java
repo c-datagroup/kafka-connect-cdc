@@ -16,10 +16,12 @@
 package com.github.jcustenborder.kafka.connect.cdc.logminer;
 
 import com.google.common.base.Preconditions;
+import org.junit.jupiter.api.Disabled;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Disabled
 public class LogMinerTestConstants {
   public static final String USERNAME = "system";
   public static final String PASSWORD = "oracle";

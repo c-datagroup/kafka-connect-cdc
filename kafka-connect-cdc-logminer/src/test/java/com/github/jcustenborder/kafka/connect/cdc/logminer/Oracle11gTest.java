@@ -18,12 +18,14 @@ package com.github.jcustenborder.kafka.connect.cdc.logminer;
 import com.github.jcustenborder.kafka.connect.cdc.docker.DockerFormatString;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
 
+@Disabled
 public class Oracle11gTest {
   private static final Logger log = LoggerFactory.getLogger(Oracle11gTest.class);
 

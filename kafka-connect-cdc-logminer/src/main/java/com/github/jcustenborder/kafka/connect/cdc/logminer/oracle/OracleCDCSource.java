@@ -24,64 +24,32 @@ package com.github.jcustenborder.kafka.connect.cdc.logminer.oracle;
  * Created by zhengwx on 2017/6/9.
  */
 
+import com.github.jcustenborder.kafka.connect.cdc.ChangeWriter;
+import com.github.jcustenborder.kafka.connect.cdc.JdbcUtils;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.OracleSourceConnectorConfig;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.LogminerException;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.Utils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import plsql.plsqlLexer;
-import plsql.plsqlParser;
 
 import java.math.BigDecimal;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_00;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_16;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_37;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_40;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_41;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_42;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_43;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_44;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_47;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_48;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_49;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_50;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_52;
-import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.JDBC_54;
-
-import com.github.jcustenborder.kafka.connect.cdc.logminer.OracleSourceConnectorConfig;
-import com.github.jcustenborder.kafka.connect.cdc.JdbcUtils;
-import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.Utils;
+import static com.github.jcustenborder.kafka.connect.cdc.logminer.lib.jdbc.JdbcErrors.*;
 
 public class OracleCDCSource {
 
@@ -111,7 +79,6 @@ public class OracleCDCSource {
 
     private Optional<ResultSet> currentResultSet = Optional.empty();
     private Optional<Statement> currentStatement = Optional.empty();
-    private boolean isCachedSCNValid = true;
     private static final int MISSING_LOG_FILE = 1291;
 
     private enum DDL_EVENT {
@@ -129,7 +96,8 @@ public class OracleCDCSource {
         for (java.lang.reflect.Field jdbcType : Types.class.getFields()) {
             try {
                 JDBCTypeNames.put((Integer) jdbcType.get(null), jdbcType.getName());
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 LOG.warn("JDBC Type Name access error", ex);
             }
         }
@@ -159,13 +127,17 @@ public class OracleCDCSource {
     private Future<?> resultSetClosingFuture = null;
 
     private final OracleSourceConnectorConfig config;
+    private final OracleSQLParser sqlParser;
     private final boolean shouldTrackDDL;
+    private final ChangeWriter changeWriter;
 
     private String logMinerProcedure;
     private String baseLogEntriesSql = null;
     private String redoLogEntriesSql = null;
     private boolean containerized = false;
+
     private BigDecimal cachedSCN = BigDecimal.ZERO;
+    private boolean isCachedSCNValid = true;
 
     private Connection connection = null;
     private PreparedStatement produceSelectChanges;
@@ -178,12 +150,36 @@ public class OracleCDCSource {
     private PreparedStatement numericFormat;
     private PreparedStatement switchContainer;
 
-    private final ParseTreeWalker parseTreeWalker = new ParseTreeWalker();
-    private final SQLListener sqlListener = new SQLListener();
-
-    public OracleCDCSource(OracleSourceConnectorConfig config) {
+    public OracleCDCSource(OracleSourceConnectorConfig config, ChangeWriter changeWriter) {
         this.config = config;
-        this.shouldTrackDDL = config.dictionarySource == OracleSourceConnectorConfig.DictionarySource.REDO_LOGS;
+        this.shouldTrackDDL = config.dictionarySource == OracleSourceConnectorConfig.DictionarySource.DICT_FROM_REDO_LOGS;
+        this.changeWriter = changeWriter;
+        this.sqlParser = new OracleSQLParser(config, changeWriter);
+    }
+
+    private void createOracleConnection() throws SQLException {
+        connection = JdbcUtils.openPooledConnection(this.config, this.config.changeKey).getConnection();
+        connection.setAutoCommit(false);
+    }
+
+    private void recreateOracleConnection() {
+        if (connection != null) {
+            LOG.debug("close Connection before re-creating");
+            JdbcUtils.closeConnection(connection);
+        }
+        try {
+            createOracleConnection();
+            initializeStatements();
+            initializeLogMnrStatements();
+            alterSession();
+        }
+        catch (Exception exp) {
+            LOG.error("failed to connect to database + " + exp.getMessage());
+        }
+    }
+
+    public void setOracleChangeBuilder(OracleChangeBuilder builder){
+        this.sqlParser.setOracleChangeBuilder(builder);
     }
 
     public String produce(String lastSourceOffset) {
@@ -195,24 +191,18 @@ public class OracleCDCSource {
         PreparedStatement selectChanges = null;
         PreparedStatement dateChanges = null;
         String nextOffset = "";
-        final Semaphore generationSema = new Semaphore(0);
+        final Semaphore generationSema = new Semaphore(1);
         final AtomicBoolean generationStarted = new AtomicBoolean(false);
         try {
-            if (connection == null || !connection.isValid(30)) {
-                if (connection != null) {
-                    JdbcUtils.closeConnection(connection);
-                }
-                connection = JdbcUtils.openPooledConnection(this.config, this.config.changeKey).getConnection();
-                connection.setAutoCommit(false);
-                initializeStatements();
-                initializeLogMnrStatements();
-                alterSession();
+            if (connection == null || !connection.isValid(10)) {
+                recreateOracleConnection();
             }
 
             if (produceSelectChanges == null || produceSelectChanges.isClosed()) {
                 produceSelectChanges = getSelectChangesStatement();
             }
             selectChanges = this.produceSelectChanges;
+            //selectChanges = connection.prepareStatement("select * from sys_user where rownum <= 2");
             String lastOffset;
             boolean unversioned = true;
             int base = 0;
@@ -232,7 +222,9 @@ public class OracleCDCSource {
                 String[] splits = lastSourceOffset.split(OFFSET_DELIM);
                 lastOffset = splits[base++];
                 rowsRead = Long.valueOf(splits[base]);
+
                 BigDecimal startCommitSCN = new BigDecimal(lastOffset);
+                this.cachedSCN = startCommitSCN;
                 selectChanges.setBigDecimal(1, startCommitSCN);
                 long rowsToSkip = unversioned ? 0 : rowsRead;
                 selectChanges.setLong(2, rowsToSkip);
@@ -243,7 +235,8 @@ public class OracleCDCSource {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Starting Commit SCN = " + startCommitSCN + ", Rows skipped = " + rowsToSkip);
                 }
-            } else {
+            }
+            else {
                 if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_DATE) {
                     String dateChangesString = Utils.format(baseLogEntriesSql,
                             "((COMMIT_TIMESTAMP >= TO_DATE('" + this.config.logminerStartDate + "', 'DD-MM-YYYY HH24:MI:SS')) " +
@@ -252,11 +245,12 @@ public class OracleCDCSource {
                     LOG.debug("LogMiner Select Query: " + dateChangesString);
                     selectChanges = dateChanges;
                     closeResultSet = true;
-                } else {
+                }
+                else {
                     BigDecimal startCommitSCN = new BigDecimal(this.config.logminerStartSCN);
-                    produceSelectChanges.setBigDecimal(1, startCommitSCN);
-                    produceSelectChanges.setLong(2, 0);
-                    produceSelectChanges.setBigDecimal(3, startCommitSCN);
+                    selectChanges.setBigDecimal(1, startCommitSCN);
+                    selectChanges.setLong(2, 0);
+                    selectChanges.setBigDecimal(3, startCommitSCN);
                     if (shouldTrackDDL) {
                         selectChanges.setBigDecimal(4, startCommitSCN);
                     }
@@ -265,7 +259,8 @@ public class OracleCDCSource {
 
             try {
                 startLogMiner();
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 LOG.error("Error while starting LogMiner", ex);
                 throw new LogminerException(JDBC_52, ex);
             }
@@ -276,35 +271,50 @@ public class OracleCDCSource {
                 public void run() {
                     generationStarted.set(true);
                     try {
+                        LOG.debug("Begin generating the records...");
+                        generationSema.acquire();
                         generateRecords(batchSize, select, closeRS);
-                    } catch (Exception ex) {
+                        LOG.debug("End generating the records!");
+                    }
+                    catch (Exception ex) {
                         LOG.error("Error while generating records", ex);
                         Throwables.propagate(ex);
-                    } finally {
+                    }
+                    finally {
                         generationSema.release();
                     }
                 }
             });
             resultSetClosingFuture.get(1, TimeUnit.MINUTES);
-        } catch (TimeoutException timeout) {
+            LOG.debug("Begin generating the records...");
+            generateRecords(batchSize, select, closeRS);
+            LOG.debug("End generating the records!");
+        }
+        catch (TimeoutException timeout) {
             LOG.info("Batch has timed out. Adding all records received and completing batch. This may take a while");
             if (resultSetClosingFuture != null && !resultSetClosingFuture.isDone()) {
                 resultSetClosingFuture.cancel(true);
                 try {
                     if (generationStarted.get()) {
+                        LOG.info("waiting for Generating thread to exit");
                         generationSema.acquire();
+                        LOG.info("End of Generating thread!");
                     }
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     LOG.warn("Error while waiting for processing to complete", ex);
                 }
             }
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             LOG.error("Error while attempting to produce records", ex);
-        } finally {
+        }
+        finally {
             if (dateChanges != null) {
                 try {
                     dateChanges.close();
-                } catch (SQLException e) {
+                }
+                catch (SQLException e) {
                     LOG.warn("Error while closing statement", e);
                 }
             }
@@ -312,13 +322,13 @@ public class OracleCDCSource {
         nextOffset = nextOffsetReference.get();
         if (!StringUtils.isEmpty(nextOffset)) {
             return VERSION_STR + OFFSET_DELIM + nextOffset;
-        } else {
+        }
+        else {
             return lastSourceOffset == null ? "" : lastSourceOffset;
         }
     }
 
     private void generateRecords(int batchSize, PreparedStatement selectChanges, boolean forceNewResultSet) throws SQLException, LogminerException, ParseException {
-
         String operation;
         StringBuilder query = new StringBuilder();
         ResultSet resultSet;
@@ -326,7 +336,8 @@ public class OracleCDCSource {
             resultSet = selectChanges.executeQuery();
             currentStatement = Optional.of(selectChanges);
             currentResultSet = Optional.of(resultSet);
-        } else {
+        }
+        else {
             resultSet = currentResultSet.get();
         }
 
@@ -335,66 +346,41 @@ public class OracleCDCSource {
         try {
             while (resultSet.next()) {
                 count++;
-                query.append(resultSet.getString(5));
+                query.append(resultSet.getString(OracleSQLStatements.LogEntries.SQL_REDO.getValue()));
+
                 // CSF is 1 if the query is incomplete, so read the next row before parsing
                 // CSF being 0 means query is complete, generate the record
-                if (resultSet.getInt(9) == 0) {
+                if (resultSet.getInt(OracleSQLStatements.LogEntries.CSF.getValue()) == 0) {
                     incompleteRedoStatement = false;
-                    BigDecimal scnDecimal = resultSet.getBigDecimal(1);
+
+                    BigDecimal scnDecimal = resultSet.getBigDecimal(OracleSQLStatements.LogEntries.SCN.getValue());
                     String scn = scnDecimal.toPlainString();
-                    String username = resultSet.getString(2);
-                    short op = resultSet.getShort(3);
-                    String timestamp = resultSet.getString(4);
-                    String table = resultSet.getString(6).trim();
-                    BigDecimal commitSCN = resultSet.getBigDecimal(7);
+
+                    String username = resultSet.getString(OracleSQLStatements.LogEntries.USERNAME.getValue());
+                    short operationCode = resultSet.getShort(OracleSQLStatements.LogEntries.OPERATION_CODE.getValue());
+
+                    Date  timestamp = resultSet.getDate(OracleSQLStatements.LogEntries.TIMESTAMP.getValue());
+
+                    String table = resultSet.getString(OracleSQLStatements.LogEntries.TABLE_NAME.getValue()).trim();
+                    BigDecimal commitSCN = resultSet.getBigDecimal(OracleSQLStatements.LogEntries.COMMIT_SCN.getValue());
                     String queryString = query.toString();
-                    long seq = resultSet.getLong(8);
+                    long seq = resultSet.getLong(OracleSQLStatements.LogEntries.SEQUENCE.getValue());
+
+                    LOG.debug("Got log with Commit SCN = " + commitSCN + ", SCN = " + scn + ", Redo SQL = " + queryString);
+
                     String scnSeq;
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Commit SCN = " + commitSCN + ", SCN = " + scn + ", Redo SQL = " + queryString);
-                    }
-                    sqlListener.reset();
-                    plsqlLexer lexer = new plsqlLexer(new ANTLRInputStream(queryString));
-                    CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-                    plsqlParser parser = new plsqlParser(tokenStream);
-                    ParserRuleContext ruleContext = null;
-                    int operationCode = -1;
-                    switch (op) {
-                        case OracleCDCOperationCode.UPDATE_CODE:
-                        case OracleCDCOperationCode.SELECT_FOR_UPDATE_CODE:
-                            ruleContext = parser.update_statement();
-                            operationCode = OracleCDCOperationCode.UPDATE_CODE;
-                            break;
-                        case OracleCDCOperationCode.INSERT_CODE:
-                            ruleContext = parser.insert_statement();
-                            operationCode = OracleCDCOperationCode.INSERT_CODE;
-                            break;
-                        case OracleCDCOperationCode.DELETE_CODE:
-                            ruleContext = parser.delete_statement();
-                            operationCode = OracleCDCOperationCode.DELETE_CODE;
-                            break;
-                        case OracleCDCOperationCode.DDL_CODE:
-                            break;
-                        default:
-                            //todo: warn here
-                            continue;
-                    }
-                    if (op != OracleCDCOperationCode.DDL_CODE) {
-                        operation = OracleCDCOperationCode.getLabelFromIntCode(operationCode);
+                    if (operationCode != OracleCDCOperationCode.DDL_CODE) {
                         scnSeq = commitSCN + OFFSET_DELIM + seq;
-                        // Walk it and attach our sqlListener
-                        parseTreeWalker.walk(sqlListener, ruleContext);
-                        Map<String, String> columns = sqlListener.getColumns();
-
-                        for (Map.Entry<String, String> column : columns.entrySet()) {
-                            String columnName = column.getKey();
-
-                            if (decimalColumns.containsKey(table) && decimalColumns.get(table).containsKey(columnName)) {
-                                int precision = decimalColumns.get(table).get(columnName).precision;
-                                int scale = decimalColumns.get(table).get(columnName).scale;
-                            }
-                        }
-                    } else {
+                        OracleChange change = new OracleChange();
+                        change.databaseName = this.config.initialDatabase;
+                        change.schemaName = this.config.logminerSchemaName;
+                        change.tableName = table;
+                        change.timestamp = timestamp.getTime();
+                        change.commitSCN = commitSCN;
+                        change.sequence = seq;
+                        this.sqlParser.receiveChange(change, operationCode, queryString);
+                    }
+                    else {
                         scnSeq = scn + OFFSET_DELIM + ZERO;
                         boolean sendSchema = false;
                         // Event is sent on every DDL, but schema is not always sent.
@@ -409,24 +395,29 @@ public class OracleCDCSource {
                     }
                     this.nextOffsetReference.set(scnSeq);
                     query.setLength(0);
-                } else {
+                }
+                else {
                     incompleteRedoStatement = true;
                 }
                 if (!incompleteRedoStatement && count >= batchSize) {
                     break;
                 }
             }
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             if (ex.getErrorCode() == MISSING_LOG_FILE) {
                 isCachedSCNValid = false;
-            } else if (ex.getErrorCode() != RESULTSET_CLOSED_AS_LOGMINER_SESSION_CLOSED) {
-                LOG.warn("SQL Exception while retrieving records", ex);
             }
+            else
+                if (ex.getErrorCode() != RESULTSET_CLOSED_AS_LOGMINER_SESSION_CLOSED) {
+                    LOG.warn("SQL Exception while retrieving records", ex);
+                }
             if (!resultSet.isClosed()) {
                 resultSet.close();
             }
             currentResultSet = Optional.empty();
-        } finally {
+        }
+        finally {
             if (forceNewResultSet || count < batchSize) {
                 resultSet.close();
                 currentResultSet = Optional.empty();
@@ -440,10 +431,12 @@ public class OracleCDCSource {
             Matcher ddlMatcher = DDL_PATTERN.matcher(redoSQL.toUpperCase());
             if (!ddlMatcher.find()) {
                 ddlType = DDL_EVENT.UNKNOWN;
-            } else {
+            }
+            else {
                 ddlType = DDL_EVENT.valueOf(ddlMatcher.group(1));
             }
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             LOG.warn("Unknown DDL Type for statement: " + redoSQL, e);
             ddlType = DDL_EVENT.UNKNOWN;
         }
@@ -459,7 +452,7 @@ public class OracleCDCSource {
             if (!tableSchemaLastUpdate.containsKey(table) || scnDecimal.compareTo(tableSchemaLastUpdate.get(table)) > 0) {
                 if (containerized) {
                     try (Statement switchToPdb = connection.createStatement()) {
-                        switchToPdb.execute("ALTER SESSION SET CONTAINER = " + this.config.logminerContainerName);
+                        switchToPdb.execute(OracleSQLStatements.getPDBSwitchingSQL(this.config.logminerContainerName));
                     }
                 }
                 tableSchemas.put(table, getTableSchema(table));
@@ -467,7 +460,8 @@ public class OracleCDCSource {
                 return true;
             }
             return false;
-        } finally {
+        }
+        finally {
             alterSession();
         }
     }
@@ -477,101 +471,79 @@ public class OracleCDCSource {
 
         // Try starting using cached SCN to avoid additional query if the cache one is still the oldest.
         if (cachedSCN != BigDecimal.ZERO && isCachedSCNValid) { // Yes, it is an == comparison since we are checking if this is the actual ZERO object
-            try {
-                startLogMinerUsingGivenSCNs(cachedSCN, endSCN);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Started using cached SCN: " + cachedSCN.toPlainString());
-                }
-                return;
-            } catch (SQLException ex) {
-                LOG.debug("Cached SCN is no longer valid", ex);
-            }
+            LOG.debug("Log mining from specified SCN: " + cachedSCN.toPlainString());
+            startLogMinerUsingGivenSCNs(cachedSCN, endSCN);
         }
-
-        SQLException lastException = null;
-        boolean startedLogMiner = false;
-
-        getOldestSCN.setBigDecimal(1, cachedSCN);
-        try (ResultSet rs = getOldestSCN.executeQuery()) {
-            while (rs.next()) {
-                BigDecimal oldestSCN = rs.getBigDecimal(1);
-                try {
+        else {
+            getOldestSCN.setBigDecimal(1, cachedSCN);
+            try (ResultSet rs = getOldestSCN.executeQuery()) {
+                while (rs.next()) {
+                    BigDecimal oldestSCN = rs.getBigDecimal(1);
                     startLogMinerUsingGivenSCNs(oldestSCN, endSCN);
-                    startedLogMiner = true;
-                    isCachedSCNValid = true;
                     break;
-                } catch (SQLException ex) {
-                    lastException = ex;
                 }
-            }
-        }
-        connection.commit();
-        if (!startedLogMiner) {
-            if (lastException != null) {
-                throw new LogminerException(JDBC_52, lastException);
-            } else {
-                throw new LogminerException(JDBC_52);
             }
         }
     }
 
     private void startLogMinerUsingGivenSCNs(BigDecimal oldestSCN, BigDecimal endSCN) throws SQLException {
-        try {
-            startLogMnr.setBigDecimal(1, oldestSCN);
-            startLogMnr.setBigDecimal(2, endSCN);
-            startLogMnr.execute();
-            cachedSCN = oldestSCN;
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(Utils.format("Started LogMiner with start offset: {} and end offset: {}",
-                                oldestSCN.toPlainString(), endSCN.toPlainString()));
-            }
-        } catch (SQLException ex) {
-            LOG.debug("SQLException while starting LogMiner", ex);
-            throw ex;
-        }
+        startLogMnr.setBigDecimal(1, oldestSCN);
+        startLogMnr.setBigDecimal(2, endSCN);
+        startLogMnr.execute();
+        cachedSCN = oldestSCN;
+        LOG.debug(Utils.format("Started LogMiner with start offset: {} and end offset: {}", oldestSCN.toPlainString(), endSCN.toPlainString()));
     }
 
     public void init() {
-        if (connection == null) { // For tests, we set a mock connection
-            try {
-                connection = JdbcUtils.openPooledConnection(this.config, this.config.changeKey).getConnection();
-                connection.setAutoCommit(false);
-            } catch (SQLException e) {
-                LOG.error("Error while connecting to DB", e);
-            }
-        }
-
         String container = this.config.logminerContainerName;
         List<String> tables = new ArrayList<>(this.config.logminerTables.size());
 
         try {
+            createOracleConnection();
             initializeStatements();
             alterSession();
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             LOG.error("Error while creating statement", ex);
         }
-        String commitScnField = "";
-        BigDecimal scn = null;
-        try {
-            scn = getEndingSCN();
-            if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_SCN) {
-                if (new BigDecimal(this.config.logminerStartSCN).compareTo(scn) > 0) {
+        String commitScnField = "COMMIT_SCN";
 
+        BigDecimal latestScn = null;
+        try {
+            latestScn = getEndingSCN();
+            if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_SCN) {
+                BigDecimal startSCN = new BigDecimal(this.config.logminerStartSCN);
+                if (startSCN.compareTo(latestScn) > 0) {
+                    LOG.error(Utils.format(JDBC_47.name(), latestScn));
+                    this.cachedSCN = latestScn;
                 }
-            } else if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_DATE) {
-                try {
-                    Date startDate = getDate(this.config.logminerStartDate);
-                    if (startDate.after(new Date(System.currentTimeMillis()))) {
-                    }
-                } catch (ParseException ex) {
-                    LOG.error("Invalid date", ex);
+                else {
+                    this.cachedSCN = startSCN;
                 }
-            } else if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.FROM_LATEST_CHANGE) {
-                this.config.logminerStartSCN = scn.longValue();
-            } else {
-                throw new IllegalStateException("Unknown start value!");
             }
-        } catch (SQLException ex) {
+            else
+                if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_DATE) {
+                    try {
+                        Date startDate = getDate(this.config.logminerStartDate);
+                        if (startDate.after(new Date(System.currentTimeMillis()))) {
+                            LOG.error(JDBC_48.name());
+                        }
+                    }
+                    catch (ParseException ex) {
+                        LOG.error(Utils.format("Invalid start date: {}", this.config.logminerStartDate), ex);
+                    }
+                }
+                else
+                    if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.FROM_LATEST_CHANGE) {
+                        this.config.logminerStartSCN = latestScn.longValue();
+                        //we need to start the mining from the latest SCN
+                        this.cachedSCN = latestScn;
+                    }
+                    else {
+                        throw new IllegalStateException("Unknown start value!");
+                    }
+        }
+        catch (SQLException ex) {
             LOG.error("Error while getting SCN", ex);
         }
 
@@ -583,10 +555,10 @@ public class OracleCDCSource {
             }
             if (majorVersion >= 12) {
                 if (!StringUtils.isEmpty(container)) {
-                    String switchToPdb = "ALTER SESSION SET CONTAINER = " + this.config.logminerContainerName;
                     try {
-                        reusedStatement.execute(switchToPdb);
-                    } catch (SQLException ex) {
+                        reusedStatement.execute(OracleSQLStatements.getPDBSwitchingSQL(this.config.logminerContainerName));
+                    }
+                    catch (SQLException ex) {
                         LOG.error("Error while switching to container: " + container, ex);
                     }
                     containerized = true;
@@ -596,7 +568,8 @@ public class OracleCDCSource {
                 table = table.trim();
                 if (!this.config.caseSensitive) {
                     tables.add(table.toUpperCase());
-                } else {
+                }
+                else {
                     tables.add(table);
                 }
             }
@@ -606,10 +579,11 @@ public class OracleCDCSource {
                 table = table.trim();
                 try {
                     tableSchemas.put(table, getTableSchema(table));
-                    if (scn != null) {
-                        tableSchemaLastUpdate.put(table, scn);
+                    if (latestScn != null) {
+                        tableSchemaLastUpdate.put(table, latestScn);
                     }
-                } catch (SQLException ex) {
+                }
+                catch (SQLException ex) {
                     LOG.error("Error while switching to container: " + container, ex);
                 }
             }
@@ -618,7 +592,8 @@ public class OracleCDCSource {
                 try {
                     switchContainer.execute();
                     LOG.info("Switched to CDB$ROOT to start LogMiner.");
-                } catch (SQLException ex) {
+                }
+                catch (SQLException ex) {
                     // Fatal only if we switched to a PDB earlier
                     if (containerized) {
                         LOG.error("Error while switching to container: " + container, ex);
@@ -628,35 +603,16 @@ public class OracleCDCSource {
                 }
             }
             commitScnField = majorVersion >= 11 ? "COMMIT_SCN" : "CSCN";
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             LOG.error("Error while creating statement", ex);
         }
 
-        final String ddlTracking = shouldTrackDDL ? " + DBMS_LOGMNR.DDL_DICT_TRACKING" : "";
-
-        this.logMinerProcedure = "BEGIN"
-                + " DBMS_LOGMNR.START_LOGMNR("
-                + " STARTSCN => ?,"
-                + " ENDSCN => ?,"
-                + " OPTIONS => DBMS_LOGMNR." + this.config.dictionarySource.name()
-                + "          + DBMS_LOGMNR.CONTINUOUS_MINE"
-                + "          + DBMS_LOGMNR.COMMITTED_DATA_ONLY"
-                + "          + DBMS_LOGMNR.NO_ROWID_IN_STMT"
-                + "          + DBMS_LOGMNR.NO_SQL_DELIMITER"
-                + ddlTracking
-                + ");"
-                + " END;";
+        this.logMinerProcedure = OracleSQLStatements.getLogMinerStartSQL(this.config.dictionarySource.name(), shouldTrackDDL);
 
         // ORDER BY is not required, since log miner returns all records from a transaction once it is committed, in the
         // order of statement execution. Not having ORDER BY also increases performance a whole lot.
-        baseLogEntriesSql = Utils.format(
-                "SELECT SCN, USERNAME, OPERATION_CODE, TIMESTAMP, SQL_REDO, TABLE_NAME, " + commitScnField + ", SEQUENCE#, CSF" +
-                        " FROM V$LOGMNR_CONTENTS" +
-                        " WHERE" +
-                        " SEG_OWNER='{}' AND TABLE_NAME IN ({})" +
-                        " AND {}",
-                this.config.initialDatabase, formatTableList(tables) // the final one is filled in differently by each one
-        );
+        baseLogEntriesSql = OracleSQLStatements.getLogEntriesTemplate(this.config.logminerSchemaName, commitScnField, formatTableList(tables));
 
         redoLogEntriesSql = Utils.format(baseLogEntriesSql,
                 "((((" + commitScnField + " = ? AND SEQUENCE# > ?) OR " + commitScnField + " > ?) AND OPERATION_CODE IN (" +
@@ -664,12 +620,9 @@ public class OracleCDCSource {
 
         try {
             initializeLogMnrStatements();
-        } catch (SQLException ex) {
-            LOG.error("Error while creating statement", ex);
         }
-
-        if (this.config.caseSensitive) {
-            sqlListener.setCaseSensitive();
+        catch (SQLException ex) {
+            LOG.error("Error while creating statement", ex);
         }
     }
 
@@ -709,15 +662,20 @@ public class OracleCDCSource {
     private void initializeLogMnrStatements() throws SQLException {
         produceSelectChanges = getSelectChangesStatement();
         startLogMnr = connection.prepareCall(logMinerProcedure);
-        endLogMnr = connection.prepareCall("BEGIN DBMS_LOGMNR.END_LOGMNR; END;");
+        endLogMnr = connection.prepareCall(OracleSQLStatements.getLogMinerEndSQL());
         LOG.debug("Redo select query = " + produceSelectChanges.toString());
     }
 
     private PreparedStatement getSelectChangesStatement() throws SQLException {
+        LOG.debug(Utils.format("Redo Log select SQL: {}", redoLogEntriesSql));
         return connection.prepareStatement(redoLogEntriesSql);
     }
 
     private String formatTableList(List<String> tables) {
+        if (tables.isEmpty()) {
+            return null;
+        }
+
         List<String> quoted = new ArrayList<>(tables.size());
         for (String table : tables) {
             quoted.add("'" + table + "'");
@@ -740,8 +698,9 @@ public class OracleCDCSource {
     private void validateTablePresence(Statement statement, List<String> tables) {
         for (String table : tables) {
             try {
-                statement.execute("SELECT * FROM \"" + this.config.logminerSchemaName + "\".\"" + table + "\" WHERE 1 = 0");
-            } catch (SQLException ex) {
+                statement.execute(OracleSQLStatements.getTableSchemaSQL(this.config.logminerSchemaName, table));
+            }
+            catch (SQLException ex) {
                 StringBuilder sb = new StringBuilder("Table: ").append(table).append(" does not exist.");
                 if (StringUtils.isEmpty(this.config.logminerContainerName)) {
                     sb.append(" PDB was not specified. If the database was created inside a PDB, please specify PDB");
@@ -753,9 +712,8 @@ public class OracleCDCSource {
 
     private Map<String, Integer> getTableSchema(String tableName) throws SQLException {
         Map<String, Integer> columns = new HashMap<>();
-        String query = "SELECT * FROM \"" + this.config.logminerSchemaName + "\".\"" + tableName + "\" WHERE 1 = 0";
         try (Statement schemaStatement = connection.createStatement();
-             ResultSet rs = schemaStatement.executeQuery(query)) {
+             ResultSet rs = schemaStatement.executeQuery(OracleSQLStatements.getTableSchemaSQL(this.config.logminerSchemaName, tableName))) {
             ResultSetMetaData md = rs.getMetaData();
             int colCount = md.getColumnCount();
             for (int i = 1; i <= colCount; i++) {
@@ -783,7 +741,7 @@ public class OracleCDCSource {
         // Getting metadata version using connection.getMetaData().getDatabaseProductVersion() returns 12c which makes
         // comparisons brittle, so use the actual numerical versions.
         try (Statement statement = connection.createStatement();
-             ResultSet versionSet = statement.executeQuery("SELECT version FROM product_component_version")) {
+             ResultSet versionSet = statement.executeQuery(OracleSQLStatements.getProductVersionSQL())) {
             if (versionSet.next()) {
                 String versionStr = versionSet.getString("version");
                 if (versionStr != null) {
@@ -792,7 +750,8 @@ public class OracleCDCSource {
                     return majorVersion;
                 }
             }
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             LOG.error("Error while getting db version info", ex);
         }
         return -1;
@@ -803,7 +762,8 @@ public class OracleCDCSource {
         try {
             if (endLogMnr != null && !endLogMnr.isClosed())
                 endLogMnr.execute();
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             LOG.warn("Error while stopping LogMiner", ex);
         }
 
@@ -815,7 +775,8 @@ public class OracleCDCSource {
             if (connection != null) {
                 connection.close();
             }
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             LOG.warn("Error while closing connection to database", ex);
         }
 
@@ -834,7 +795,8 @@ public class OracleCDCSource {
                 if (stmt != null) {
                     stmt.close();
                 }
-            } catch (SQLException e) {
+            }
+            catch (SQLException e) {
                 LOG.warn("Error while closing connection to database", e);
             }
         }

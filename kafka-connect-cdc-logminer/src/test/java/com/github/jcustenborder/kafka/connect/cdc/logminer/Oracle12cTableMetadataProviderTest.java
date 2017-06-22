@@ -24,9 +24,11 @@ import com.github.jcustenborder.kafka.connect.cdc.logminer.docker.Oracle12cClust
 import com.github.jcustenborder.kafka.connect.cdc.logminer.docker.OracleSettings;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.docker.OracleSettingsExtension;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.model.TableMetadataTestCase;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.oracle.Oracle12cTableMetadataProvider;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.junit.experimental.categories.Category;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.mock;
 
+@Disabled
 @Category(Integration.class)
 @DockerCompose(dockerComposePath = Oracle12cTest.DOCKER_COMPOSE_FILE, clusterHealthCheck = Oracle12cClusterHealthCheck.class)
 @ExtendWith(OracleSettingsExtension.class)

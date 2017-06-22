@@ -25,6 +25,7 @@ public abstract class PooledCDCSourceConnectorConfig<T extends ConnectionPoolDat
   public static final String INITIAL_DATABASE_CONF = "initial.database";
   public static final String SERVER_NAME_CONF = "server.name";
   public static final String SERVER_PORT_CONF = "server.port";
+  public static final String JDBC_CONNECTION_URL_CONF = "url";
 
   static final String INITIAL_DATABASE_DOC = "The initial database to connect to.";
   static final String SERVER_NAME_DOC = "The server to connect to.";
@@ -32,6 +33,8 @@ public abstract class PooledCDCSourceConnectorConfig<T extends ConnectionPoolDat
 
   static final String JDBC_USERNAME_DOC = "JDBC Username to connect to the database with.";
   static final String JDBC_PASSWORD_DOC = "JDBC Password to connect to the database with.";
+  static final String JDBC_CONNECTION_URL_DOC = "JDBC Connection URL.";
+
   static final String JDBC_POOL_MAX_TOTAL_CONF = "jdbc.pool.max.total";
   static final String JDBC_POOL_MAX_TOTAL_DOC = "The maximum number of CONNECTIONS for the connection pool to open. If a number " +
       "greater than this value is requested, the caller will block waiting for a connection to be returned.";
@@ -49,6 +52,7 @@ public abstract class PooledCDCSourceConnectorConfig<T extends ConnectionPoolDat
 
   public final String jdbcUsername;
   public final String jdbcPassword;
+  public final String jdbcURL;
   public final int jdbcPoolMaxTotal;
   public final int jdbcPoolMaxIdle;
   public final int jdbcPoolMinIdle;
@@ -64,14 +68,16 @@ public abstract class PooledCDCSourceConnectorConfig<T extends ConnectionPoolDat
     this.jdbcPoolMinIdle = this.getInt(JDBC_POOL_MIN_IDLE_CONF);
     this.serverName = this.getString(SERVER_NAME_CONF);
     this.serverPort = this.getInt(SERVER_PORT_CONF);
+    this.jdbcURL = this.getString(JDBC_CONNECTION_URL_CONF);
     this.initialDatabase = this.getString(INITIAL_DATABASE_CONF);
     this.caseSensitive = this.getBoolean(CASE_SENSITIVE_CONF);
   }
 
   public static ConfigDef config() {
     return CDCSourceConnectorConfig.config()
-        .define(SERVER_NAME_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, SERVER_NAME_DOC)
-        .define(SERVER_PORT_CONF, ConfigDef.Type.INT, ConfigDef.Importance.HIGH, SERVER_PORT_DOC)
+        .define(SERVER_NAME_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.LOW, SERVER_NAME_DOC)
+        .define(SERVER_PORT_CONF, ConfigDef.Type.INT, ConfigDef.Importance.LOW, SERVER_PORT_DOC)
+        .define(JDBC_CONNECTION_URL_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, JDBC_CONNECTION_URL_DOC)
         .define(INITIAL_DATABASE_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, INITIAL_DATABASE_DOC)
         .define(JDBC_USERNAME_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, JDBC_USERNAME_DOC)
         .define(JDBC_PASSWORD_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, JDBC_PASSWORD_DOC)

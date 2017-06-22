@@ -7,7 +7,7 @@
 
     <logger name="com.github.jcustenborder.kafka.connect.cdc" level="TRACE" />
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
