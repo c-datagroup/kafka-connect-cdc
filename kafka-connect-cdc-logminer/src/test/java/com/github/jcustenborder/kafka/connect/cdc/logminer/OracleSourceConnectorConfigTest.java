@@ -23,7 +23,7 @@ public class OracleSourceConnectorConfigTest {
     @Test
     public void test() {
         assertNotNull(this.oracleConfig);
-        assertEquals(this.oracleConfig.logminerStartSCN, 0);
-        assertEquals(this.oracleConfig.logminerSchemaName, "");
+        assertEquals(this.oracleConfig.logminerStartSCN, 17771306);
+        assertEquals(this.oracleConfig.logminerSchemaName, "ULINK");
     }
 }

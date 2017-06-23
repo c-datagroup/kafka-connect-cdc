@@ -36,8 +36,8 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
     public static final String LOGMINER_BATCH_INTERVAL_CONF = "oracle.logminer.batch.interval";
     public static final String LOGMINER_IDLE_TIMEOUT_CONF = "oracle.logminer.idle.timeout";
     public static final String LOGMINER_RECEIVE_WAIT_CONF = "oracle.logminer.receive.wait.ms";
-    public static final String LOGMINER_ALLOWED_OPERATIONS_CONF = "logminer.allowed.operations";
-    public static final String LOGMINER_DICTIONARY_SOURCE_CONF = "logminer.dictionary.source";
+    public static final String LOGMINER_ALLOWED_OPERATIONS_CONF = "oracle.logminer.allowed.operations";
+    public static final String LOGMINER_DICTIONARY_SOURCE_CONF = "oracle.logminer.dictionary.source";
 
     static final String LOGMINER_CONTAINER_NAME_DOC = "Name of the Oracle Container.";
     static final String LOGMINER_SCHEMA_NAME_DOC = "Name of the logminer target.";
@@ -96,7 +96,7 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
                 .define(LOGMINER_ALLOWED_OPERATIONS_CONF, ConfigDef.Type.LIST, LOGMINER_ALLOWED_OPERATIONS_DEFAULT, ConfigDef.Importance.LOW, LOGMINER_ALLOWED_OPERATIONS_DOC)
                 .define(LOGMINER_SCHEMA_NAME_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, LOGMINER_SCHEMA_NAME_DOC)
                 .define(LOGMINER_CONTAINER_NAME_CONF, ConfigDef.Type.STRING, LOGMINER_CONTAINER_NAME_DEFAULT, ConfigDef.Importance.LOW, LOGMINER_CONTAINER_NAME_DOC)
-                .define(LOGMINER_TABLE_NAMES_CONF, ConfigDef.Type.LIST, ConfigDef.Importance.LOW, LOGMINER_TABLE_NAMES_DOC)
+                .define(LOGMINER_TABLE_NAMES_CONF, ConfigDef.Type.LIST, "", ConfigDef.Importance.LOW, LOGMINER_TABLE_NAMES_DOC)
                 .define(LOGMINER_INITIAL_CHANGE_CONF, ConfigDef.Type.STRING, InitialChange.FROM_LATEST_CHANGE.name(), ValidEnum.of(InitialChange.class), ConfigDef.Importance.HIGH, LOGMINER_INITIAL_CHANGE_DOC)
                 .define(LOGMINER_START_SCN_CONF, ConfigDef.Type.LONG, 0, ConfigDef.Importance.LOW, LOGMINER_START_SCN_DOC)
                 .define(LOGMINER_START_DATE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, LOGMINER_START_DATE_DOC)

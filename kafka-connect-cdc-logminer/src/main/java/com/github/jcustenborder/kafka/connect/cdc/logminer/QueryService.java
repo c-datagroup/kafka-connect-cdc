@@ -46,6 +46,7 @@ class QueryService extends AbstractExecutionThreadService {
     CountDownLatch finished = new CountDownLatch(1);
 
     QueryService(OracleSourceConnectorConfig config, OffsetStorageReader offsetStorageReader, ChangeWriter changeWriter) {
+        log.info("Create the QueryService");
         this.config = config;
         this.offsetStorageReader = offsetStorageReader;
         this.changeWriter = changeWriter;
