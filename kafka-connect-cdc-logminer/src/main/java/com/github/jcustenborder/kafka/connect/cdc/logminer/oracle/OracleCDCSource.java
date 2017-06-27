@@ -151,8 +151,10 @@ public class OracleCDCSource {
     private PreparedStatement switchContainer;
 
     public OracleCDCSource(OracleSourceConnectorConfig config, ChangeWriter changeWriter) {
+        LOG.info("Creating the OracleCDCSource");
         this.config = config;
-        this.shouldTrackDDL = config.dictionarySource == OracleSourceConnectorConfig.DictionarySource.DICT_FROM_REDO_LOGS;
+        this.shouldTrackDDL = (config.dictionarySource != null &&config.dictionarySource == OracleSourceConnectorConfig.DictionarySource.DICT_FROM_REDO_LOGS);
+
         this.changeWriter = changeWriter;
         this.sqlParser = new OracleSQLParser(config, changeWriter);
     }
@@ -286,9 +288,7 @@ public class OracleCDCSource {
                 }
             });
             resultSetClosingFuture.get(1, TimeUnit.MINUTES);
-            LOG.debug("Begin generating the records...");
             generateRecords(batchSize, select, closeRS);
-            LOG.debug("End generating the records!");
         }
         catch (TimeoutException timeout) {
             LOG.info("Batch has timed out. Adding all records received and completing batch. This may take a while");

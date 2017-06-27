@@ -14,7 +14,7 @@ import plsql.plsqlLexer;
 import plsql.plsqlParser;
 
 /**
- * Created by root on 6/22/17.
+ * Created by zhengwx on 6/22/17.
  */
 public class OracleSQLParser {
     private static final Logger LOG = LoggerFactory.getLogger(OracleSQLParser.class);
@@ -73,6 +73,7 @@ public class OracleSQLParser {
             }
             catch(Exception exp){
                 LOG.error("failed to build the changes on SQL: " + sqlString + ", exception:" + exp.getMessage());
+                exp.printStackTrace();
             }
         }
     }

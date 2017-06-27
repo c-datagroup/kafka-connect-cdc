@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import static org.mockito.Mockito.mock;
 
 /**
- * Created by root on 6/21/17.
+ * Created by zhengwx on 6/21/17.
  */
 public class OracleCDCSourceTest {
     private static final Logger log = LoggerFactory.getLogger(OracleCDCSourceTest.class);
@@ -36,7 +36,7 @@ public class OracleCDCSourceTest {
     }
 
     @Test
-    public void test() {
+    public void test_cdc_source() {
         this.oracleCDCSource.init();
         this.oracleCDCSource.setOracleChangeBuilder(this.builder);
 

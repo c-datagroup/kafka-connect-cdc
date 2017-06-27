@@ -36,12 +36,12 @@ public abstract class BaseServiceTask<CONF extends CDCSourceConnectorConfig> ext
 
   @Override
   public void start(Map<String, String> map) {
+    log.info("Starting BaseServiceTask...");
+
     super.start(map);
     Service service = service(this, this.context.offsetStorageReader());
     List<Service> services = Arrays.asList(service);
     this.serviceManager = new ServiceManager(services);
-
-    log.info("Starting Services");
     this.serviceManager.startAsync();
 
     try {
@@ -53,7 +53,7 @@ public abstract class BaseServiceTask<CONF extends CDCSourceConnectorConfig> ext
 
   @Override
   public void stop() {
-    log.info("Stopping Services");
+    log.info("Stopping BaseServiceTask...");
     this.serviceManager.stopAsync();
 
     try {

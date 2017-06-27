@@ -46,7 +46,7 @@ class QueryService extends AbstractExecutionThreadService {
     CountDownLatch finished = new CountDownLatch(1);
 
     QueryService(OracleSourceConnectorConfig config, OffsetStorageReader offsetStorageReader, ChangeWriter changeWriter) {
-        log.info("Create the QueryService");
+        log.info("QueryService created");
         this.config = config;
         this.offsetStorageReader = offsetStorageReader;
         this.changeWriter = changeWriter;
@@ -80,6 +80,7 @@ class QueryService extends AbstractExecutionThreadService {
 
     @Override
     protected void run() throws Exception {
+        log.info("QueryService running...");
         this.cdcSource.init();
         this.cdcSource.setOracleChangeBuilder(this.oracleChangeBuilder);
 
@@ -92,6 +93,7 @@ class QueryService extends AbstractExecutionThreadService {
             }
         }
         finished.countDown();
+        log.info("QueryService exit...");
     }
 
 

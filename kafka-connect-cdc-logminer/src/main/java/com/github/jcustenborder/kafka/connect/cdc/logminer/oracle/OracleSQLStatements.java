@@ -3,7 +3,7 @@ package com.github.jcustenborder.kafka.connect.cdc.logminer.oracle;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.Utils;
 
 /**
- * Created by root on 6/21/17.
+ * Created by zhengwx on 6/21/17.
  */
 public class OracleSQLStatements {
     public static String getPDBSwitchingSQL(String pdbName){

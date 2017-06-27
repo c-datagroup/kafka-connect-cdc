@@ -49,6 +49,7 @@ public class LogMinerTestConstants {
     settings.put(OracleSourceConnectorConfig.JDBC_USERNAME_CONF, LogMinerTestConstants.LOGMINER_USERNAME_12C);
     settings.put(OracleSourceConnectorConfig.JDBC_PASSWORD_CONF, LogMinerTestConstants.LOGMINER_PASSWORD_12C);
     settings.put(OracleSourceConnectorConfig.LOGMINER_SCHEMA_NAME_CONF, schema);
+    settings.put(OracleSourceConnectorConfig.LOGMINER_DICTIONARY_SOURCE_CONF, OracleSourceConnectorConfig.DictionarySource.DICT_FROM_ONLINE_CATALOG.name());
     return settings;
   }
 }

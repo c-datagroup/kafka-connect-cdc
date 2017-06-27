@@ -15,10 +15,13 @@
  */
 package com.github.jcustenborder.kafka.connect.cdc.logminer;
 
+import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.Utils;
 import com.google.common.base.Preconditions;
 import com.github.jcustenborder.kafka.connect.cdc.CDCSourceConnector;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -26,8 +29,18 @@ import java.util.List;
 import java.util.Map;
 
 public class OracleSourceConnector extends CDCSourceConnector {
+  private static final Logger log = LoggerFactory.getLogger(OracleSourceConnector.class);
+
   Map<String, String> settings;
   OracleSourceConnectorConfig config;
+
+  public Map<String, String> getSettings(){
+      return settings;
+  }
+
+  public OracleSourceConnectorConfig getConfig(){
+      return config;
+  }
 
   @Override
   public void start(Map<String, String> map) {
@@ -58,6 +71,7 @@ public class OracleSourceConnector extends CDCSourceConnector {
       taskConfigs.add(taskConfig);
     }
 
+    log.info(Utils.format("taskConfigs: return {} configurations", taskConfigs.size()));
     return taskConfigs;
   }
 

@@ -28,15 +28,15 @@ public class LogMinerDevTestConstants {
   public static final String ORACLE_PDB_DATABASE = "PDB1";
 
   public static final String ORACLE_SCHEMA_NAME = "ULINK";
-  public static final String ORACLE_TABLE_NAMES = "";
+  public static final String ORACLE_TABLE_NAMES = "TEST_TABLE2";
 
   public static final String LOGMINER_USERNAME_12C = "c##streamadmin";
   public static final String LOGMINER_PASSWORD_12C = "streamadmin";
 
-  public static Map<String, Object> settings(String host, Integer port, String schema) {
+  public static Map<String, String> settings(String host, Integer port, String schema) {
     Preconditions.checkNotNull(host, "host cannot be null.");
     Preconditions.checkNotNull(port, "port cannot be null.");
-    Map<String, Object> settings = new LinkedHashMap<>();
+    Map<String, String> settings = new LinkedHashMap<>();
     settings.put(OracleSourceConnectorConfig.SERVER_NAME_CONF, host);
     settings.put(OracleSourceConnectorConfig.SERVER_PORT_CONF, port.toString());
     settings.put(OracleSourceConnectorConfig.INITIAL_DATABASE_CONF, LogMinerDevTestConstants.ORACLE_ROOT_DATABASE);
@@ -48,7 +48,7 @@ public class LogMinerDevTestConstants {
     settings.put(OracleSourceConnectorConfig.LOGMINER_INITIAL_CHANGE_CONF, OracleSourceConnectorConfig.InitialChange.START_SCN.name());
     settings.put(OracleSourceConnectorConfig.LOGMINER_TABLE_NAMES_CONF, ORACLE_TABLE_NAMES);
     settings.put(OracleSourceConnectorConfig.LOGMINER_SCHEMA_NAME_CONF, ORACLE_SCHEMA_NAME);
-    settings.put(OracleSourceConnectorConfig.LOGMINER_START_SCN_CONF, 17771306);
+    settings.put(OracleSourceConnectorConfig.LOGMINER_START_SCN_CONF, "17771306");
     settings.put(OracleSourceConnectorConfig.JDBC_CONNECTION_URL_CONF, "jdbc:oracle:thin:" + LogMinerDevTestConstants.LOGMINER_USERNAME_12C +
             "/" + LogMinerDevTestConstants.LOGMINER_PASSWORD_12C +
             "@" + host + ":" + port.toString() + "/" +LogMinerDevTestConstants.ORACLE_ROOT_DATABASE );

@@ -19,8 +19,13 @@
  */
 package com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -28,6 +33,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class Utils {
     private static final Map<String, String[]> TEMPLATES = new ConcurrentHashMap();
+
+    private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
+    private static final String ISO8601_UTC_MASK = "yyyy-MM-dd'T'HH:mm'Z'";
 
     static String[] prepareTemplate(String template) {
         ArrayList list = new ArrayList();
@@ -61,6 +69,16 @@ public final class Utils {
         return sb.toString();
     }
 
+    //format with lazy-eval
+    public static Object formatL(final String template, final Object... args) {
+        return new Object() {
+            @Override
+            public String toString() {
+                return format(template, args);
+            }
+        };
+    }
+
     /**
      * Ensures that an object reference passed as a parameter to the calling method is not null.
      *
@@ -74,5 +92,18 @@ public final class Utils {
             throw new NullPointerException(format("{} cannot be null", varName));
         }
         return value;
+    }
+
+
+    private static DateFormat getISO8601DateFormat() {
+        DateFormat dateFormat = new SimpleDateFormat(ISO8601_UTC_MASK);
+        // Stricter parsing to prevent dates such as 2011-12-50T01:00Z (December 50th) from matching
+        dateFormat.setLenient(false);
+        dateFormat.setTimeZone(UTC);
+        return dateFormat;
+    }
+
+    public static Date parse(String str) throws ParseException {
+        return getISO8601DateFormat().parse(str);
     }
 }

@@ -20,6 +20,7 @@ import com.github.jcustenborder.kafka.connect.cdc.Change;
 import com.github.jcustenborder.kafka.connect.cdc.ChangeKey;
 import com.github.jcustenborder.kafka.connect.cdc.JdbcUtils;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.OracleSourceConnectorConfig;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.Utils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -112,6 +113,7 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
 
     static {
         Map<String, Schema.Type> map = new HashMap<>();
+        map.put("BIGINT", Schema.Type.INT64);
         map.put("BINARY_DOUBLE", Schema.Type.FLOAT64);
         map.put("BINARY_FLOAT", Schema.Type.FLOAT32);
         map.put("BLOB", Schema.Type.BYTES);
@@ -236,6 +238,8 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
         boolean nullable = "Y".equalsIgnoreCase(resultSet.getString(4));
         String comments = resultSet.getString(5);
 
+        log.info(Utils.format("Got dataType = {} for Column = {}", dataType, columnName));
+
         if (TYPE_LOOKUP.containsKey(dataType)) {
             Schema.Type type = TYPE_LOOKUP.get(dataType);
             builder = SchemaBuilder.type(type);
@@ -243,6 +247,7 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
         else
             if ("NUMBER".equals(dataType)) {
                 builder = Decimal.builder(scale);
+                builder.parameter("NUMBER", "1");
             }
             else
                 if (matches(TIMESTAMP_PATTERN, dataType)) {

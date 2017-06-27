@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Created by root on 6/21/17.
+ * Created by zhengwx on 6/21/17.
  */
 public class OracleSourceConnectorConfigTest {
     private static final Logger log = LoggerFactory.getLogger(Oracle11gKeyMetadataProviderTest.class);
