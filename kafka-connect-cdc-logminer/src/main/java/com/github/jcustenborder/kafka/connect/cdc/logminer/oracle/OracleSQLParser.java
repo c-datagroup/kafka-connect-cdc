@@ -40,6 +40,7 @@ public class OracleSQLParser {
     }
 
     public void receiveChange(OracleChange change, short operationCode, String sqlString){
+        LOG.debug("receiveChange: {} with SQL: {}", operationCode, sqlString);
         sqlListener.reset();
         plsqlLexer lexer = new plsqlLexer(new ANTLRInputStream(sqlString));
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
@@ -72,8 +73,7 @@ public class OracleSQLParser {
                 this.changeWriter.addChange(change);
             }
             catch(Exception exp){
-                LOG.error("failed to build the changes on SQL: " + sqlString + ", exception:" + exp.getMessage());
-                exp.printStackTrace();
+                LOG.error("failed to build the changes exception: {}", exp.getMessage(), exp);
             }
         }
     }

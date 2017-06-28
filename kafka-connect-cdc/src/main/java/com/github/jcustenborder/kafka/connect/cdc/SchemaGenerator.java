@@ -249,6 +249,7 @@ class SchemaGenerator {
 
 
   SchemaPair generateSchemas(Change change) {
+
     log.debug("generateSchemas with change: " + change);
     List<String> keySchemaFields = new ArrayList<>();
     Schema keySchema = generateKeySchema(change, keySchemaFields);

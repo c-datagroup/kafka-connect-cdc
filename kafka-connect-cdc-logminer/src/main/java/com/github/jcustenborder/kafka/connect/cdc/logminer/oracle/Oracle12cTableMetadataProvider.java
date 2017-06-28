@@ -28,7 +28,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Timestamp;
@@ -246,8 +245,14 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
         }
         else
             if ("NUMBER".equals(dataType)) {
-                builder = Decimal.builder(scale);
-                builder.parameter("NUMBER", "1");
+                if (scale == 0){
+                    builder = SchemaBuilder.int64();
+                }
+                else {
+                    //builder = Decimal.builder(scale);
+                    builder = SchemaBuilder.float64();
+                    builder.parameter("NUMBER", "1");
+                }
             }
             else
                 if (matches(TIMESTAMP_PATTERN, dataType)) {
@@ -329,6 +334,7 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
                 }
 
                 tableMetadata.columnSchemas = columnSchemas;
+                log.info("fetchTableMetadata: found {} columns", columnSchemas.size());
             }
 
             Preconditions.checkState(!tableMetadata.columnSchemas.isEmpty(), "%s: Could not find any columns", changeKey);

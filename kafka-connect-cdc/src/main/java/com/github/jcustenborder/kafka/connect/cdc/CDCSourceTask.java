@@ -21,7 +21,6 @@ import org.apache.kafka.common.utils.SystemTime;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
-import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
 import org.slf4j.Logger;
@@ -42,13 +41,12 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
     protected abstract CONF getConfig(Map<String, String> map);
 
     void setStructField(Struct struct, String field, Object value) {
-        log.trace("setStructField() - field = '{}' value = '{}'", field, value);
+        log.trace("setStructField() - field = ({}) value = ({}) type = ({})", field, value, value != null?value.getClass().getSimpleName():"NULL");
         try {
             struct.put(field, value);
         }
-        catch (DataException ex) {
-            throw new DataException(
-                    String.format("Exception thrown while setting the value for field '%s'. data=%s",
+        catch (Exception ex) {
+            log.error(String.format("Exception thrown while setting the value for field '%s'. data=%s",
                             field,
                             null == value ? "NULL" : value.getClass()
                     ),
@@ -57,52 +55,48 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
         }
     }
 
-    SourceRecord createRecord(SchemaPair schemaPair, Change change) {
+    SourceRecord createRecord(final SchemaPair schemaPair, Change change) {
         Preconditions.checkNotNull(change.metadata(), "change.metadata() cannot return null.");
 
         Struct key = null;
         Schema keySchema = null;
-        if (schemaPair.getKey() != null && schemaPair.getKey().schema != null && schemaPair.getKey().schema.fields() != null){
+        /*if (schemaPair.getKey() != null && schemaPair.getKey().schema != null && schemaPair.getKey().schema.fields() != null){
             key = new Struct(schemaPair.getKey().schema);
-            log.debug("createRecord: " + key.schema().fields() + ", Size: " + key.schema().fields().size());
+            log.debug("createRecord: fields ({}), size ({})", key.schema().fields(), key.schema().fields().size());
             keySchema = key.schema();
 
-            log.trace("createRecord() - Setting key fields.");
-            for (int i = 0; i < schemaPair.getKey().fields.size(); i++) {
-                String fieldName = schemaPair.getKey().fields.get(i);
+            log.trace("createRecord: Setting key fields.");
+            for (int i = 0; i < change.keyColumns().size(); i++) {
                 Change.ColumnValue columnValue = change.keyColumns().get(i);
-                setStructField(key, fieldName, columnValue.value());
+                setStructField(key, columnValue.columnName(), columnValue.value());
             }
-        }
+        }*/
 
         final Struct value;
         final Schema valueSchema;
 
-        if (Change.ChangeType.DELETE == change.changeType()) {
-            log.trace("createRecord() - changeType is delete, setting value to null.");
-            value = null;
-            valueSchema = null;
-        }
-        else {
-            log.trace("createRecord() - Setting value fields.");
-            value = new Struct(schemaPair.getValue().schema);
-            valueSchema = value.schema();
-            for (int i = 0; i < schemaPair.getValue().fields.size(); i++) {
-                String fieldName = schemaPair.getValue().fields.get(i);
-                Change.ColumnValue columnValue = change.valueColumns().get(i);
-                setStructField(value, fieldName, columnValue.value());
+        log.trace("createRecord() - Setting value fields.");
+        value = new Struct(schemaPair.getValue().schema);
+        valueSchema = value.schema();
+        for (int i = 0; i < change.valueColumns().size(); i++) {
+            Change.ColumnValue columnValue = change.valueColumns().get(i);
+            if(columnValue.value() != null) {
+                setStructField(value, columnValue.columnName(), columnValue.value());
             }
-            log.trace("createRecord() - Setting metadata.");
-            Map<String, String> metadata = new LinkedHashMap<>(change.metadata().size() + 3);
-            metadata.putAll(change.metadata());
-            metadata.put(Constants.DATABASE_NAME_VARIABLE, change.databaseName());
-            metadata.put(Constants.SCHEMA_NAME_VARIABLE, change.schemaName());
-            metadata.put(Constants.TABLE_NAME_VARIABLE, change.tableName());
-            setStructField(value, Constants.METADATA_FIELD, change.metadata());
+            else{
+                log.trace("");
+            }
         }
+
+        log.trace("createRecord() - Setting metadata.");
+        Map<String, String> metadata = new LinkedHashMap<>(change.metadata().size() + 3);
+        metadata.putAll(change.metadata());
+        metadata.put(Constants.DATABASE_NAME_VARIABLE, change.databaseName());
+        metadata.put(Constants.SCHEMA_NAME_VARIABLE, change.schemaName());
+        metadata.put(Constants.TABLE_NAME_VARIABLE, change.tableName());
+        setStructField(value, Constants.METADATA_FIELD, change.metadata());
 
         String topic = this.schemaGenerator.topic(change);
-
         SourceRecord sourceRecord = new SourceRecord(
                 change.sourcePartition(),
                 change.sourceOffset(),
@@ -124,6 +118,8 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
 
         try {
             SchemaPair schemaPair = this.schemaGenerator.schemas(change);
+            log.debug("addChange: change = {} schemaPair = {}", change, schemaPair);
+
             SourceRecord record = createRecord(schemaPair, change);
             this.changes.add(record);
         }
@@ -146,6 +142,7 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
         List<SourceRecord> records = new ArrayList<>(this.config.batchSize);
 
         if (this.changes.drain(records)) {
+            log.info("poll: got {} records for sending", records.size());
             return records;
         }
 

@@ -28,7 +28,7 @@ public class LogMinerDevTestConstants {
   public static final String ORACLE_PDB_DATABASE = "PDB1";
 
   public static final String ORACLE_SCHEMA_NAME = "ULINK";
-  public static final String ORACLE_TABLE_NAMES = "TEST_TABLE2";
+  public static final String ORACLE_TABLE_NAMES = "KM_CATALOG";
 
   public static final String LOGMINER_USERNAME_12C = "c##streamadmin";
   public static final String LOGMINER_PASSWORD_12C = "streamadmin";

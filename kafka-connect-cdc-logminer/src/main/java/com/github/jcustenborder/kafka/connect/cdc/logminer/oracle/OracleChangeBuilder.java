@@ -10,7 +10,6 @@ import oracle.sql.TIMESTAMPLTZ;
 import oracle.sql.TIMESTAMPTZ;
 import oracle.streams.StreamsException;
 import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.errors.DataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,29 +68,27 @@ public class OracleChangeBuilder {
 
         change.sourcePartition = ImmutableMap.of();
         long position = change.sequence;
-        change.sourceOffset = ImmutableMap.of(
-                OracleChange.POSITION_KEY,  change.sequence
-        );
+        change.sourceOffset = ImmutableMap.of(OracleChange.POSITION_KEY,  change.sequence);
 
-        log.trace("{}: Processing {} column(s) for row='{}'.", changeKey, sqlListener.getColumns().size(), position);
+        log.trace("{}: Processing {} column(s) for row='{}'.", sqlListener.getColumns().size(), position);
 
         List<Change.ColumnValue> valueColumns = new ArrayList<>(tableMetadata.columnSchemas().size());
         List<Change.ColumnValue> keyColumns = new ArrayList<>(tableMetadata.keyColumns().size());
 
         for ( Map.Entry<String, String> column: sqlListener.getColumns().entrySet()) {
-
-            log.trace("{}: Processing row.getNewValues({}) for row='{}'", changeKey, column.getKey(), position);
-
             Schema schema = tableMetadata.columnSchemas().get(column.getKey());
             Object value;
             try {
-                log.trace("{}: Converting Column ({}) to schema {} for row='{}'", changeKey, column.getKey(), Utils.toString(schema), position);
+                log.trace("Converting Column ({}) to schema ({})", column.getKey(), Utils.toString(schema), position);
                 Field field = objectToFiled(schema, column.getKey(), column.getValue());
+
                 if (field == null) {
-                    continue;
+                    value = null;
                 }
-                value = field.getValue();
-                log.trace("{}: Converted Column ({}) to value {} for row='{}'", changeKey, column.getKey(), value, position);
+                else {
+                    value = field.getValue();
+                    log.trace("Converted Column ({}) to value ({}) valueType ({})", column.getKey(), value, value.getClass(), position);
+                }
 
                 Change.ColumnValue outputColumnValue = new OracleChange.OracleColumnValue(
                         column.getKey(),
@@ -101,59 +98,63 @@ public class OracleChangeBuilder {
                 valueColumns.add(outputColumnValue);
 
                 if (tableMetadata.keyColumns().contains(column.getKey())) {
-                    log.trace("{}: Adding key({}) for row='{}'", changeKey, column.getKey(), position);
+                    log.trace("Adding key ({}) for row='{}'",  column.getKey(), position);
                     keyColumns.add(outputColumnValue);
                 }
             }
             catch (Exception ex) {
-                String message = String.format("Exception thrown while processing row. %s: row='%s'", changeKey, position);
-                throw new DataException(message, ex);
+                log.error("{}: failed to convert field ({}) with value ({})", change, column.getKey(), column.getValue());
             }
         }
 
         change.keyColumns = keyColumns;
         change.valueColumns = valueColumns;
 
-        log.trace("{}: Converted {} key(s) {} value(s) for row='{}'", changeKey, change.keyColumns().size(), change.valueColumns().size(), position);
+        log.trace("Converted {} key(s) {} value(s) for row='{}'", change.keyColumns().size(), change.valueColumns().size(), position);
     }
 
     private Field objectToFiled(Schema schema, String column, String columnValue){
-        log.debug(com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.Utils.format("objectToField on {} value {}", column, columnValue));
-        Field field;
-        switch(schema.type()){
-            case INT8:
-            case INT16:
-                field = Field.create(Field.Type.SHORT, columnValue);
-                break;
-            case INT32:
-                field = Field.create(Field.Type.INTEGER, columnValue);
-                break;
-            case INT64:
-                field = Field.create(Field.Type.LONG, columnValue);
-                break;
-            case ARRAY:
-            case BYTES:
-                if (schema.parameters().containsKey("NUMBER")){
-                    BigDecimal value = new BigDecimal(columnValue);
-                    field = Field.create(Field.Type.DECIMAL, value);
-                }
-                else {
-                    field = Field.create(Field.Type.BYTE_ARRAY, columnValue.getBytes());
-                }
-                break;
-            case STRING:
-                field = Field.create(Field.Type.STRING, columnValue);
-                break;
-            case BOOLEAN:
-                field = Field.create(Field.Type.BOOLEAN, columnValue);
-                break;
-            case FLOAT32:
-            case FLOAT64:
-                field = Field.create(Field.Type.FLOAT, columnValue);
-                break;
-            default:
-                log.warn("Unsupport type: " + schema.type().name());
-                field = null;
+        log.debug("objectToField on column type ({}), column ({}), value ({})", schema.type().name(), column, columnValue);
+        Field field = null;
+        try {
+            switch (schema.type()) {
+                case INT8:
+                case INT16:
+                    field = Field.create(Field.Type.SHORT, columnValue);
+                    break;
+                case INT32:
+                    field = Field.create(Field.Type.INTEGER, columnValue);
+                    break;
+                case INT64:
+                    field = Field.create(Field.Type.LONG, columnValue);
+                    break;
+                case ARRAY:
+                case BYTES:
+                    if (schema.parameters().containsKey("NUMBER")) {
+                        BigDecimal value = new BigDecimal(columnValue);
+                        field = Field.create(Field.Type.DECIMAL, value);
+                    }
+                    else {
+                        field = Field.create(Field.Type.BYTE_ARRAY, columnValue.getBytes());
+                    }
+                    break;
+                case STRING:
+                    field = Field.create(Field.Type.STRING, columnValue);
+                    break;
+                case BOOLEAN:
+                    field = Field.create(Field.Type.BOOLEAN, columnValue);
+                    break;
+                case FLOAT32:
+                case FLOAT64:
+                    field = Field.create(Field.Type.FLOAT, columnValue);
+                    break;
+                default:
+                    log.warn("Unsupport type: " + schema.type().name());
+                    break;
+            }
+        }
+        catch(Exception exp){
+            field = null;
         }
         return field;
     }
