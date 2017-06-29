@@ -146,7 +146,7 @@ public class OracleChangeBuilder {
                     break;
                 case FLOAT32:
                 case FLOAT64:
-                    field = Field.create(Field.Type.FLOAT, columnValue);
+                    field = Field.create(Field.Type.DOUBLE, columnValue);
                     break;
                 default:
                     log.warn("Unsupport type: " + schema.type().name());
