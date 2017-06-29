@@ -15,9 +15,8 @@
  */
 package com.github.jcustenborder.kafka.connect.cdc.logminer;
 
-import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.Utils;
-import com.google.common.base.Preconditions;
 import com.github.jcustenborder.kafka.connect.cdc.CDCSourceConnector;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.Utils;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
 import org.slf4j.Logger;
@@ -55,21 +54,12 @@ public class OracleSourceConnector extends CDCSourceConnector {
 
   @Override
   public List<Map<String, String>> taskConfigs(int i) {
-    Preconditions.checkState(
-        i >= this.config.logminerTables.size(),
-        "%s Oracle table(s) were requested but tasks.max is configured to %s",
-        this.config.logminerTables.size(),
-        i
-    );
-
     List<Map<String, String>> taskConfigs = new ArrayList<>();
 
-    for (String tableName : this.config.logminerTables) {
-      Map<String, String> taskConfig = new LinkedHashMap<>();
-      taskConfig.putAll(this.settings);
-      taskConfig.put(OracleSourceConnectorConfig.LOGMINER_TABLE_NAMES_CONF, tableName);
-      taskConfigs.add(taskConfig);
-    }
+    //we don't need to support the multiple tasks now
+    Map<String, String> taskConfig = new LinkedHashMap<>();
+    taskConfig.putAll(this.settings);
+    taskConfigs.add(taskConfig);
 
     log.info(Utils.format("taskConfigs: return {} configurations", taskConfigs.size()));
     return taskConfigs;

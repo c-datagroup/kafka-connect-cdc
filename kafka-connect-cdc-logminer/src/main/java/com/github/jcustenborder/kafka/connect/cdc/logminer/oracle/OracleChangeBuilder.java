@@ -3,6 +3,7 @@ package com.github.jcustenborder.kafka.connect.cdc.logminer.oracle;
 import com.github.jcustenborder.kafka.connect.cdc.*;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.OracleSourceConnectorConfig;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.api.Field;
+import com.github.jcustenborder.kafka.connect.cdc.logminer.lib.utils.ColumnValueHelper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import oracle.sql.Datum;
@@ -14,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.PooledConnection;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -126,17 +126,25 @@ public class OracleChangeBuilder {
                     field = Field.create(Field.Type.INTEGER, columnValue);
                     break;
                 case INT64:
-                    field = Field.create(Field.Type.LONG, columnValue);
+                    Object finalValue = null;
+                    if(columnValue != null) {
+                        if (schema.parameters().containsKey("DATE")) {
+                            String value = ColumnValueHelper.normalizeData(columnValue);
+                            finalValue = ColumnValueHelper.getDate(value);
+                        }
+                        else if (schema.parameters().containsKey("TIMESTAMP")) {
+                            String value = ColumnValueHelper.normalizeData(columnValue);
+                            finalValue = (Date)ColumnValueHelper.getTimestamp(value);
+                        }
+                        else {
+                            finalValue = columnValue;
+                        }
+                    }
+                    field = Field.create(Field.Type.LONG, finalValue);
                     break;
                 case ARRAY:
                 case BYTES:
-                    if (schema.parameters().containsKey("NUMBER")) {
-                        BigDecimal value = new BigDecimal(columnValue);
-                        field = Field.create(Field.Type.DECIMAL, value);
-                    }
-                    else {
-                        field = Field.create(Field.Type.BYTE_ARRAY, columnValue.getBytes());
-                    }
+                    field = Field.create(Field.Type.BYTE_ARRAY, columnValue.getBytes());
                     break;
                 case STRING:
                     field = Field.create(Field.Type.STRING, columnValue);
@@ -149,7 +157,7 @@ public class OracleChangeBuilder {
                     field = Field.create(Field.Type.DOUBLE, columnValue);
                     break;
                 default:
-                    log.warn("Unsupport type: " + schema.type().name());
+                    log.warn("Unsupported type: " + schema.type().name());
                     break;
             }
         }

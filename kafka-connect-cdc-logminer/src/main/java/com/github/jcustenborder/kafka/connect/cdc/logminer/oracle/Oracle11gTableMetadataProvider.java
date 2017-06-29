@@ -42,6 +42,15 @@ public class Oracle11gTableMetadataProvider extends CachingTableMetadataProvider
     return null;
   }
 
+  @Override
+  public int getDBVersion(){
+    return 11;
+  }
+
+  @Override
+  public void setDBVersion(int version){
+  }
+
 
 //  PreparedStatement primaryKeyStatement;
 //  PreparedStatement uniqueKeyStatement;

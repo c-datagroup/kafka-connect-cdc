@@ -28,6 +28,10 @@ public interface TableMetadataProvider {
 
   void cacheOffset(ChangeKey changeKey, Map<String, Object> offset);
 
+  int getDBVersion();
+
+  void setDBVersion(int version);
+
   interface TableMetadata {
     String databaseName();
 

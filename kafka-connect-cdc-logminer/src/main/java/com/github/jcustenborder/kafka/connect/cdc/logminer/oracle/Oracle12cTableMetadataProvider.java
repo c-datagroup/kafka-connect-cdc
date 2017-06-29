@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
-import org.apache.kafka.connect.data.Timestamp;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.slf4j.Logger;
@@ -109,6 +108,7 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
     final static Pattern TIMESTAMP_WITH_LOCAL_TIMEZONE = Pattern.compile("^TIMESTAMP\\(\\d\\) WITH LOCAL TIME ZONE$");
     final static Pattern TIMESTAMP_WITH_TIMEZONE = Pattern.compile("^TIMESTAMP\\(\\d\\) WITH TIME ZONE$");
     private static final Logger log = LoggerFactory.getLogger(Oracle12cTableMetadataProvider.class);
+    int version;
 
     static {
         Map<String, Schema.Type> map = new HashMap<>();
@@ -129,11 +129,22 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
 
     public Oracle12cTableMetadataProvider(OracleSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
         super(config, offsetStorageReader);
+        this.version = 12;
     }
 
     static boolean matches(Pattern pattern, String input) {
         Matcher matcher = pattern.matcher(input);
         return matcher.matches();
+    }
+
+    @Override
+    public void setDBVersion(int version){
+        this.version = version;
+    }
+
+    @Override
+    public int getDBVersion(){
+        return this.version;
     }
 
     @Override
@@ -166,10 +177,11 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
             }
             return keys;
         }
+        else{
+            log.trace("{}: No primary keys were found.", changeKey);
+        }
 
-        log.trace("{}: No primary keys were found.", changeKey);
         log.trace("{}: Searching for unique constraints.", changeKey);
-
         try (PreparedStatement uniqueConstraintStatement = connection.prepareStatement(UNIQUE_CONSTRAINT_SQL)) {
             uniqueConstraintStatement.setString(1, changeKey.schemaName);
             uniqueConstraintStatement.setString(2, changeKey.tableName);
@@ -195,7 +207,6 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
                 }
 
                 String uniqueConstraint = null;
-
                 for (String key : uniqueConstraints.keys()) {
                     uniqueConstraint = key;
                     break;
@@ -243,38 +254,28 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
             Schema.Type type = TYPE_LOOKUP.get(dataType);
             builder = SchemaBuilder.type(type);
         }
-        else
-            if ("NUMBER".equals(dataType)) {
-                if (scale == 0){
-                    builder = SchemaBuilder.int64();
-                }
-                else {
-                    //builder = Decimal.builder(scale);
-                    builder = SchemaBuilder.float64();
-                    builder.parameter("NUMBER", "1");
-                }
+        else if ("NUMBER".equals(dataType)) {
+            if (scale == 0){
+                builder = SchemaBuilder.int64();
             }
-            else
-                if (matches(TIMESTAMP_PATTERN, dataType)) {
-                    builder = Timestamp.builder();
-                }
-                else
-                    if (matches(TIMESTAMP_WITH_LOCAL_TIMEZONE, dataType)) {
-                        builder = Timestamp.builder();
-                    }
-                    else
-                        if (matches(TIMESTAMP_WITH_TIMEZONE, dataType)) {
-                            builder = Timestamp.builder();
-                        }
-                        else
-                            if ("DATE".equals(dataType)) {
-                                builder = Timestamp.builder();
-                            }
-                            else {
-                                String message = String.format("Could not determine schema type for column %s. dataType = %s", columnName, dataType);
-                                throw new DataException(message);
-                            }
-
+            else {
+                builder = SchemaBuilder.float64();
+            }
+        }
+        else if (matches(TIMESTAMP_PATTERN, dataType) ||
+                    matches(TIMESTAMP_WITH_LOCAL_TIMEZONE, dataType) ||
+                    matches(TIMESTAMP_WITH_TIMEZONE, dataType)) {
+            builder = SchemaBuilder.int64();
+            builder.parameter("TIMESTAMP", "1");
+        }
+        else if ("DATE".equals(dataType)) {
+            builder = SchemaBuilder.int64();
+            builder.parameter("DATE", "1");
+        }
+        else {
+            String message = String.format("Could not determine schema type for column %s. dataType = %s", columnName, dataType);
+            throw new DataException(message);
+        }
 
         if (nullable) {
             builder.optional();
@@ -284,10 +285,7 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
             builder.doc(comments);
         }
 
-        builder.parameters(
-                ImmutableMap.of(Change.ColumnValue.COLUMN_NAME, columnName)
-        );
-
+        builder.parameters(ImmutableMap.of(Change.ColumnValue.COLUMN_NAME, columnName));
         return builder.build();
     }
 
@@ -304,12 +302,15 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
         try {
             pooledConnection = JdbcUtils.openPooledConnection(this.config, changeKey);
             log.trace("{}: Pooled connection received. JdbcUrl = {}", changeKey, pooledConnection.getConnection().getMetaData().getURL());
-            try (Statement statement = pooledConnection.getConnection().createStatement()) {
+
+            if(this.getDBVersion() >= 12) {
+                try (Statement statement = pooledConnection.getConnection().createStatement()) {
                     final String SQL = String.format("ALTER SESSION SET container = %s", this.config.logminerContainerName);
                     if (log.isTraceEnabled()) {
                         log.trace("{}: Changing container to {}", changeKey, changeKey.databaseName);
                     }
-                statement.execute(SQL);
+                    statement.execute(SQL);
+                }
             }
 
             log.trace("{}: Querying for the column metadata.", changeKey);
@@ -338,7 +339,6 @@ public class Oracle12cTableMetadataProvider extends CachingTableMetadataProvider
             }
 
             Preconditions.checkState(!tableMetadata.columnSchemas.isEmpty(), "%s: Could not find any columns", changeKey);
-
             tableMetadata.keyColumns = findKeys(pooledConnection.getConnection(), changeKey);
         }
         finally {

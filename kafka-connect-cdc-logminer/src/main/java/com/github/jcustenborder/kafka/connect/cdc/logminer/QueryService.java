@@ -18,7 +18,6 @@ package com.github.jcustenborder.kafka.connect.cdc.logminer;
 import com.github.jcustenborder.kafka.connect.cdc.ChangeWriter;
 import com.github.jcustenborder.kafka.connect.cdc.JdbcUtils;
 import com.github.jcustenborder.kafka.connect.cdc.TableMetadataProvider;
-import com.github.jcustenborder.kafka.connect.cdc.logminer.oracle.Oracle11gTableMetadataProvider;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.oracle.Oracle12cTableMetadataProvider;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.oracle.OracleCDCSource;
 import com.github.jcustenborder.kafka.connect.cdc.logminer.oracle.OracleChangeBuilder;
@@ -63,11 +62,10 @@ class QueryService extends AbstractExecutionThreadService {
         log.info("Connected to Oracle {}.{}", databaseMetaData.getDatabaseMajorVersion(), databaseMetaData.getDatabaseMinorVersion());
 
         switch (databaseMetaData.getDatabaseMajorVersion()) {
+            case 11:
             case 12:
                 this.tableMetadataProvider = new Oracle12cTableMetadataProvider(this.config, this.offsetStorageReader);
-                break;
-            case 11:
-                this.tableMetadataProvider = new Oracle11gTableMetadataProvider(this.config, this.offsetStorageReader);
+                this.tableMetadataProvider.setDBVersion(databaseMetaData.getDatabaseMajorVersion());
                 break;
             default:
                 throw new UnsupportedOperationException(
