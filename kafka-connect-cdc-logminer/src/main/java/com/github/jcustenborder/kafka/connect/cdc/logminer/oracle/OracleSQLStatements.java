@@ -70,4 +70,9 @@ public class OracleSQLStatements {
         return "SELECT * FROM \"" + schemaName + "\".\"" + tableName + "\" WHERE 1 = 0";
     }
 
+    public static String getTimestampToSCNSQL(String timestamp, String timestampFormat){
+        String sqlTemplate = "select timestamp_to_scn(to_timestamp('{}', '{}')) from dual";
+        return Utils.format(sqlTemplate, timestamp, timestampFormat);
+    }
+
 }

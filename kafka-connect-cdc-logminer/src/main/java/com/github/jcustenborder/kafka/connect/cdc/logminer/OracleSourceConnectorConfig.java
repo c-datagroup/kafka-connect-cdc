@@ -38,6 +38,8 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
     public static final String LOGMINER_RECEIVE_WAIT_CONF = "oracle.logminer.receive.wait.ms";
     public static final String LOGMINER_ALLOWED_OPERATIONS_CONF = "oracle.logminer.allowed.operations";
     public static final String LOGMINER_DICTIONARY_SOURCE_CONF = "oracle.logminer.dictionary.source";
+    public static final String LOGMINER_NLS_DATE_FORMAT_CONF = "oracle.logminer.nls.date.format";
+    public static final String LOGMINER_NLS_TIMESTAMP_FORMAT_CONF = "oracle.logminer.nls.timestamp.format";
 
     static final String LOGMINER_CONTAINER_NAME_DOC = "Name of the Oracle Container.";
     static final String LOGMINER_SCHEMA_NAME_DOC = "Name of the logminer target.";
@@ -50,6 +52,8 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
     static final String LOGMINER_BATCH_INTERVAL_DOC = "batch processing interval.";
     static final String LOGMINER_IDLE_TIMEOUT_DOC = "idle timeout value.";
     static final String LOGMINER_RECEIVE_WAIT_DOC = "The amount of time to wait in milliseconds when returns null";
+    static final String LOGMINER_NLS_DATE_FORMAT_DOC = "The format of NLS date";
+    static final String LOGMINER_NLS_TIMESTAMP_FORMAT_DOC = "The format of NLS timestamp";
 
     static final String LOGMINER_CONTAINER_NAME_DEFAULT = "PDB1";
     static final int LOGMINER_RECEIVE_WAIT_DEFAULT = 1000;
@@ -57,6 +61,8 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
     static final int LOGMINER_IDEL_TIMEOUT_DEFAULT = 1;
     static final List<String> LOGMINER_ALLOWED_OPERATIONS_DEFAULT = Arrays.asList(Operations.INSERT.name(), Operations.UPDATE.name(),
             Operations.DELETE.name(), Operations.SELECT_FOR_UPDATE.name());
+    static final String LOGMINER_NLS_DATE_FORMAT_DEFAULT = "dd-MM-yyyy HH24:mi:ss";
+    static final String LOGMINER_NLS_TIMESTAMP_FORMAT_DEFAULT = "yyyy-MM-dd HH24:mi:ss.ff";
 
     public final String logminerContainerName;
     public final String logminerSchemaName;
@@ -69,6 +75,8 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
     public final int logminerBatchInterval;
     public final int logminerIdleTimeout;
     public final int logminerReceiveWait;
+    public final String logminerNlsDateFormat;
+    public final String getLogminerNlsTimestampFormat;
     public final ChangeKey changeKey;
 
     public OracleSourceConnectorConfig(Map<?, ?> parsedConfig) {
@@ -84,6 +92,8 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
         this.logminerBatchInterval = this.getInt(LOGMINER_BATCH_INTERVAL_CONF);
         this.logminerIdleTimeout = this.getInt(LOGMINER_IDLE_TIMEOUT_CONF);
         this.logminerContainerName = this.getString(LOGMINER_CONTAINER_NAME_CONF);
+        this.logminerNlsDateFormat = this.getString(LOGMINER_NLS_DATE_FORMAT_CONF);
+        this.getLogminerNlsTimestampFormat = this.getString(LOGMINER_NLS_TIMESTAMP_FORMAT_CONF);
 
         // use a unique ChangeKey to open the Connection Pool to Oracle
         String tableNames = Joiner.on('-').join(this.logminerTables);
@@ -102,7 +112,9 @@ public class OracleSourceConnectorConfig extends PooledCDCSourceConnectorConfig<
                 .define(LOGMINER_START_DATE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, LOGMINER_START_DATE_DOC)
                 .define(LOGMINER_DICTIONARY_SOURCE_CONF, ConfigDef.Type.STRING, DictionarySource.DICT_FROM_ONLINE_CATALOG.name(), ValidEnum.of(DictionarySource.class), ConfigDef.Importance.HIGH, LOGMINER_DICTIONARY_SOURCE_DOC)
                 .define(LOGMINER_BATCH_INTERVAL_CONF, ConfigDef.Type.INT, LOGMINER_BATCH_INTERVAL_DEFAULT, ConfigDef.Importance.MEDIUM, LOGMINER_BATCH_INTERVAL_DOC)
-                .define(LOGMINER_IDLE_TIMEOUT_CONF, ConfigDef.Type.INT, LOGMINER_IDEL_TIMEOUT_DEFAULT, ConfigDef.Importance.MEDIUM, LOGMINER_IDLE_TIMEOUT_DOC);
+                .define(LOGMINER_IDLE_TIMEOUT_CONF, ConfigDef.Type.INT, LOGMINER_IDEL_TIMEOUT_DEFAULT, ConfigDef.Importance.MEDIUM, LOGMINER_IDLE_TIMEOUT_DOC)
+                .define(LOGMINER_NLS_DATE_FORMAT_CONF, ConfigDef.Type.STRING, LOGMINER_NLS_DATE_FORMAT_DEFAULT, ConfigDef.Importance.MEDIUM, LOGMINER_NLS_DATE_FORMAT_DOC)
+                .define(LOGMINER_NLS_TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, LOGMINER_NLS_TIMESTAMP_FORMAT_DEFAULT, ConfigDef.Importance.MEDIUM, LOGMINER_NLS_TIMESTAMP_FORMAT_DOC);
     }
 
     @Override

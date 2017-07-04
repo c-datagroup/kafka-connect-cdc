@@ -103,15 +103,16 @@ public class OracleCDCSource {
         }
     }
 
-    private static final String NLS_DATE_FORMAT = "ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MM-YYYY HH24:MI:SS'";
+    private static final String NLS_DATE_FORMAT = "ALTER SESSION SET NLS_DATE_FORMAT = '{}'";
     private static final String NLS_NUMERIC_FORMAT = "ALTER SESSION SET NLS_NUMERIC_CHARACTERS = \'.,\'";
-    private static final String NLS_TIMESTAMP_FORMAT = "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF'";
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-
+    private static final String NLS_TIMESTAMP_FORMAT = "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = '{}'";
+    private static final String DATE_FORMAT_DEFAULT = "dd-MM-yyyy HH:mm:ss";
 
     private static final Pattern DDL_PATTERN = Pattern.compile("(CREATE|ALTER|DROP|TRUNCATE).*", Pattern.CASE_INSENSITIVE);
     public static final String OFFSET_DELIM = "::";
     public static final int RESULTSET_CLOSED_AS_LOGMINER_SESSION_CLOSED = 1306;
+
+    private final SimpleDateFormat dateFormat;
 
     private final Map<String, Map<String, Integer>> tableSchemas = new HashMap<>();
     private final Map<String, Map<String, String>> dateTimeColumns = new HashMap<>();
@@ -149,6 +150,7 @@ public class OracleCDCSource {
 
     public OracleCDCSource(OracleSourceConnectorConfig config, ChangeWriter changeWriter) {
         LOG.info("Creating the OracleCDCSource");
+        this.dateFormat = new SimpleDateFormat(DATE_FORMAT_DEFAULT);
         this.config = config;
         this.shouldTrackDDL = (config.dictionarySource != null &&config.dictionarySource == OracleSourceConnectorConfig.DictionarySource.DICT_FROM_REDO_LOGS);
 
@@ -236,23 +238,21 @@ public class OracleCDCSource {
                 }
             }
             else {
+                BigDecimal startSCN = new BigDecimal(this.config.logminerStartSCN);
+
                 if (this.config.initialChange == OracleSourceConnectorConfig.InitialChange.START_DATE) {
-                    String dateChangesString = Utils.format(baseLogEntriesSql,
-                            "((COMMIT_TIMESTAMP >= TO_DATE('" + this.config.logminerStartDate + "', 'DD-MM-YYYY HH24:MI:SS')) " +
-                                    getDDLOperationsClauseDate() + ")");
-                    dateChanges = connection.prepareStatement(dateChangesString);
-                    LOG.debug("LogMiner Select Query: " + dateChangesString);
-                    selectChanges = dateChanges;
-                    closeResultSet = true;
-                }
-                else {
-                    BigDecimal startCommitSCN = new BigDecimal(this.config.logminerStartSCN);
-                    selectChanges.setBigDecimal(1, startCommitSCN);
-                    selectChanges.setLong(2, 0);
-                    selectChanges.setBigDecimal(3, startCommitSCN);
-                    if (shouldTrackDDL) {
-                        selectChanges.setBigDecimal(4, startCommitSCN);
+                    try {
+                        this.cachedSCN = getTimestampToSCN(this.config.logminerStartDate, this.config.logminerNlsDateFormat);
                     }
+                    finally {
+                    }
+                }
+                LOG.debug("Start SCN -> {}", this.cachedSCN.toPlainString());
+                selectChanges.setBigDecimal(1, this.cachedSCN);
+                selectChanges.setLong(2, 0);
+                selectChanges.setBigDecimal(3, this.cachedSCN);
+                if (shouldTrackDDL) {
+                    selectChanges.setBigDecimal(4, this.cachedSCN);
                 }
             }
 
@@ -650,8 +650,8 @@ public class OracleCDCSource {
     private void initializeStatements() throws SQLException {
         getOldestSCN = connection.prepareStatement(GET_OLDEST_SCN);
         getLatestSCN = connection.prepareStatement(CURRENT_SCN);
-        dateStatement = connection.prepareStatement(NLS_DATE_FORMAT);
-        tsStatement = connection.prepareStatement(NLS_TIMESTAMP_FORMAT);
+        dateStatement = connection.prepareStatement(Utils.format(NLS_DATE_FORMAT, this.config.logminerNlsDateFormat));
+        tsStatement = connection.prepareStatement(Utils.format(NLS_TIMESTAMP_FORMAT, this.config.getLogminerNlsTimestampFormat));
         numericFormat = connection.prepareStatement(NLS_NUMERIC_FORMAT);
         switchContainer = connection.prepareStatement(SWITCH_TO_CDB_ROOT);
     }
@@ -689,6 +689,24 @@ public class OracleCDCSource {
             BigDecimal scn = rs.getBigDecimal(1);
             LOG.debug("Current latest SCN is: " + scn.toPlainString());
             return scn;
+        }
+    }
+
+    private BigDecimal getTimestampToSCN(String timestamp, String timestampFormat) throws SQLException{
+        try (Statement statement = connection.createStatement();
+             ResultSet scnSet = statement.executeQuery(OracleSQLStatements.getTimestampToSCNSQL(timestamp, timestampFormat))) {
+            if (scnSet.next()) {
+                BigDecimal scn = scnSet.getBigDecimal(1);
+                LOG.debug("Timestamp {} with format {} to SCN {}", timestamp, timestampFormat, scn.toPlainString());
+                return scn;
+            }
+            else{
+                throw new SQLException("failed to get scn from timestamp {}", timestamp);
+            }
+        }
+        catch (SQLException ex) {
+            LOG.error("Error while getting scn from timestamp {}", timestamp, ex);
+            throw ex;
         }
     }
 
@@ -806,7 +824,7 @@ public class OracleCDCSource {
         return Optional.of(m.group(1));
     }
 
-    private static Date getDate(String s) throws ParseException {
+    private Date getDate(String s) throws ParseException {
         return dateFormat.parse(s);
     }
 
